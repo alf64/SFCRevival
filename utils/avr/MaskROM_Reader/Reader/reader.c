@@ -59,9 +59,15 @@ reader_status_t ResetReader(void)
     // ----- reset 74HC595's - there 3 of them -----
     SI_PORT |= (1<<SI_OE); // output disable
     SI_PORT &= ~(1<<SI_SRCLR); // Shift register clear
-    SI_PORT &= ~(1<<SI_SRCLK); // reset clock to zero
-    _delay_us(0.5f); // 500 ns
+    SI_PORT &= ~(1<<SI_SRCLK); // reset shift reg clock to zero
+    SI_PORT &= ~(1<<SI_RCLK); // reset load reg clock to zero
+    _delay_us(1.0f);
     SI_PORT |= (1<<SI_SRCLR); // Shift register out-of-clear
+    // ---------------------------------------------
+
+    // ----- reset mask rom ------------------------
+    ROM_PORT &= ~(1<<ROM_CE); // chip enabled
+    ROM_PORT |= (1<<ROM_OE); // output disabled
     // ---------------------------------------------
 
     // ----- reset 74HC166 -------------------------
@@ -69,7 +75,7 @@ reader_status_t ResetReader(void)
     SO_PORT |= (1<<SO_SHLD); // enable serial-in mode
     SO_PORT &= ~(1<<SO_CLR); // register clear
     SO_PORT &= ~(1<<SO_CLK_INH); // clock allow
-    _delay_us(0.5f); // 500 ns
+    _delay_us(1.0f);
     SO_PORT |= (1<<SO_CLR); // register out-of-clear
 
     // now let's stuff the register with default value,
@@ -87,7 +93,7 @@ reader_status_t ResetReader(void)
     // let's read it all!
     for(uint8_t i = 0; i < 8; i++)
     {
-        uint8_t pin_read = (SO_PIN>>SO_QH);
+        uint8_t pin_read = ((SO_PIN>>SO_QH)&0x01);
         if(pin_read == 0)
         {
             gained_val &= ~(1<<(7-i));
@@ -107,10 +113,10 @@ reader_status_t ResetReader(void)
     if( (gained_val != 0x0) || (gained_val != 0xFF) )
         return READER_FAILED;
 
-    // clean up
+    // clean up (74HC166)
     SO_PORT &= ~(1<<SO_CLK); // reset clock to zero
     SO_PORT &= ~(1<<SO_CLR); // register clear
-    _delay_us(0.5f); // 500 ns
+    _delay_us(1.0f);
     SO_PORT |= (1<<SO_CLR); // register out-of-clear
     SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode
     // ---------------------------------------------
@@ -121,7 +127,77 @@ reader_status_t ResetReader(void)
 uint8_t ReadByteReader(uint32_t addr)
 {
     uint8_t retval = 0;
-    //TODO: functionality...
+
+    /*
+     * SNES mask roms are either with:
+     * 1. 20-bit address bus (carts up to 8-Mbit)
+     * 2. 23-bit address bus (carts up to 32-Mbit)
+     *
+     * Assumption: always read 23-bit addr bus
+     */
+
+    // 1st: shift the addr data in the 595 regs
+    const uint8_t no_of_addr_bits = 23;
+    const uint32_t raddress = addr;
+    for(uint8_t i = 0; i < no_of_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(raddress>>(no_of_addr_bits-i))&0x01);
+        if(bit == 1)
+            SI_PORT |= (1<<SI_SER);
+        else
+            SI_PORT &= ~(1<<SI_SER);
+
+        _delay_us(SI_SER_SETUPTIME);
+        SI_PORT |= (1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+        SI_PORT &= ~(1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+    }
+
+    // 2nd: load the addr data onto mask rom
+    SI_PORT |= (1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_OE); // 595 regs outputs enable
+    ROM_PORT &= ~(1<<ROM_OE); // mask rom output enable
+    _delay_us(ROM_SETUPTIME); // mask rom setup time
+
+    // 3rd: read the data from mask rom
+    const uint8_t no_of_data_bits = 8;
+    // let's read it all!
+    uint8_t gained_val = 0xBE;
+    // now, assuming the 166 is in parallel-load mode... Load the data to internal 166 reg!
+    SO_PORT |= (1<<SO_CLK);
+    _delay_us(SO_CLOCK_HALF_PERIOD);
+    SO_PORT &= ~(1<<SO_CLK);
+    _delay_us(SO_CLOCK_HALF_PERIOD);
+    SO_PORT |= (1<<SO_SHLD); // enable shift mode in 74HC166
+    // QH pin is already showing us what's the MSB (QH) bit
+    for(uint8_t i = 0; i < no_of_data_bits; i++)
+    {
+        uint8_t pin_read = ((SO_PIN>>SO_QH)&0x01);
+        if(pin_read == 0)
+        {
+            gained_val &= ~(1<<(7-i));
+        }
+        else
+        {
+            gained_val |= (1<<(7-i));
+        }
+
+        // shift the data
+        SO_PORT |= (1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+        SO_PORT &= ~(1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+    }
+
+    // small clean up
+    SI_PORT |= (1<<SI_OE); // 595 regs output disable
+    ROM_PORT |= (1<<ROM_OE); // mask rom output disable
+    SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode in 74HC166
+
     return retval;
 }
 

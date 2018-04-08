@@ -24,6 +24,11 @@ int main(void)
     LEDS_OFF;
 
     InitReader();
+    reader_status_t r_stat = ResetReader();
+    if(r_stat != READER_SUCCESS)
+    {
+        while(1); // stuck forever
+    }
 
     LED_ON(LED1_PIN);
 
