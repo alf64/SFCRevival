@@ -50,10 +50,10 @@ int main(void)
     while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
     CommSendMsg(user_input, 1); // echo
 
-    /*InitReader();
+    InitReader();
     reader_status_t r_stat = ResetReader();
     if(r_stat != READER_SUCCESS)
-        while(1);*/ // stuck forever
+        while(1); // stuck forever
 
     LED_ON(LED1_PIN);
 

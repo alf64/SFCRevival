@@ -110,7 +110,7 @@ reader_status_t ResetReader(void)
     }
 
     // now we shall have gained_val either 0x0 or 0xFF
-    if( (gained_val != 0x0) || (gained_val != 0xFF) )
+    if( (gained_val != 0x0) && (gained_val != 0xFF) )
         return READER_FAILED;
 
     // clean up (74HC166)
