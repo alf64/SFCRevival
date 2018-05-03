@@ -83,6 +83,20 @@ comm_status_t CommSendMsgFromFlash(
         uint8_t msg_size);
 
 /*
+ * @brief
+ * Sends a byte of data as hex (readable as ASCII in terminal).
+ *
+ * @details
+ * For example, if you put 16 as data, this will send as "0x10" (without '0x' extension of course).
+ *
+ * @param data A byte of data to be send.
+ * @returns comm_status_t.
+ * @retval COMM_SUCCESS Means the function succeeded to send the data.
+ * @retval COMM_FAILED Means the function failed.
+ */
+comm_status_t CommSendByteAsHexAscii(uint8_t data);
+
+/*
  * Gets a message from receive buffer.
  *
  * @param msg_size An (expected) size (in bytes) of the message to read.

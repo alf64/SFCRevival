@@ -198,6 +198,8 @@ uint8_t ReadByteReader(uint32_t addr)
     ROM_PORT |= (1<<ROM_OE); // mask rom output disable
     SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode in 74HC166
 
+    retval = gained_val;
+
     return retval;
 }
 

@@ -95,6 +95,47 @@ comm_status_t CommSendMsgFromFlash(
     return status;
 }
 
+comm_status_t CommSendByteAsHexAscii(uint8_t data)
+{
+    comm_status_t status = COMM_SUCCESS;
+    const uint8_t ascii_0_offset = 0x30;
+    const uint8_t ascii_A_offset = 0x41;
+
+    char hex[2]; hex[0] = 'B'; hex[1] = 'E';
+
+    // conversion form byte to hex ascii
+    // TIP: rest can vary form 0 to 15
+    uint8_t result = data;
+    uint8_t rest = data;
+    for(uint8_t i = 0; i < 2; i++)
+    {
+        rest = result % 16;
+        result = result / 16;
+
+        if(rest > 9)
+        {
+            rest = rest-10;
+            hex[i] = ascii_A_offset+rest;
+        }
+        else
+            hex[i] = ascii_0_offset+rest;
+
+        if((result == 0) && (i == 0)) // data < 16
+        {
+            hex[1] = ascii_0_offset;
+            break;
+        }
+    }
+
+    // transmit chars from most significant one to least significant one
+    for(uint8_t i = sizeof(hex); i > 0 ; i--)
+    {
+        UsartTransmit(hex[(i-1)]);
+    }
+
+    return status;
+}
+
 comm_status_t CommGetMsg(
         uint8_t msg_size,
         char* msg)
