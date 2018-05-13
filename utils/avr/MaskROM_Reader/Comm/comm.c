@@ -28,6 +28,8 @@ comm_status_t CommInit(
     switch(baud_rate)
     {
         case 19200:
+        case 38400:
+        case 57600:
         {
             uint16_t ubrr = 0;
             uint32_t rest = (f_cpu % (8*baud_rate));

@@ -133,7 +133,8 @@
 /*
  * Clear
  *
- * Resets to zero the intenral register register
+ * Resets to zero the internal register.
+ * Active (clear) on '0'.
  */
 #define SO_CLR PC4
 

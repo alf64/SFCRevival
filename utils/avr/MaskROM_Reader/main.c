@@ -20,13 +20,15 @@
 #include "LEDdrv/led.h"
 #include "Reader/reader.h"
 #include "Comm/comm.h"
+#include "USARTdrv/usart.h"
 
 
 // ------ user interaction ------
 const char msg_01[] PROGMEM = "Welcome to MaskROM_Reader. What do you want to do ?";
-const char msg_02[] PROGMEM = "1. Read first bank from MaskROM.";
-const char msg_03[] PROGMEM = "Choose [1 - 1]: ";
-const char msg_04[] PROGMEM = "Unrecognized option.";
+const char msg_02[] PROGMEM = "1. Read a few selected bytes from MaskROM.";
+const char msg_03[] PROGMEM = "2. Read 1 MegaByte from MaskROM.";
+const char msg_04[] PROGMEM = "Choose [1 - 2]: ";
+const char msg_05[] PROGMEM = "Unrecognized option.";
 char user_input[1];
 // ------------------------------
 
@@ -41,7 +43,7 @@ int main(void)
 
     // init communication (via UART) mechanism
     comm_status_t c_stat = CommInit(
-            19200,
+            57600,
             F_CPU,
             NULL,
             0);
@@ -52,8 +54,10 @@ int main(void)
     CommSendMsgFromFlash(msg_01, (sizeof(msg_01)-1));
     CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
     CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
+    CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
     while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
     CommSendMsg(user_input, 1); // echo
+    //user_input[0] = '2';
 
     InitReader();
     reader_status_t r_stat = ResetReader();
@@ -64,17 +68,43 @@ int main(void)
     {
         case '1':
         {
-            for(uint32_t i = 0; i < 65536; i++)
+            for(uint32_t i = 0; i < 1; i++)
+            {
+                uint8_t bt = ReadByteReader((uint32_t)0x5B02);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0x6FFF);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0x7B6C);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0xCA4D);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0x82BEF);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0x82BF5);
+                c_stat = CommSendByteAsHexAscii(bt);
+                _delay_us(1.0f);
+                bt = ReadByteReader((uint32_t)0x87B35);
+                c_stat = CommSendByteAsHexAscii(bt);
+            }
+            break;
+        }
+        case '2':
+        {
+            for(uint32_t i = 0; i < 1048576; i++)
             {
                 uint8_t bt = ReadByteReader(i);
-                c_stat = CommSendByteAsHexAscii(bt);
-                _delay_us(1);
+                UsartTransmit(bt);
             }
             break;
         }
         default:
         {
-            CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
+            CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
             break;
         }
     }

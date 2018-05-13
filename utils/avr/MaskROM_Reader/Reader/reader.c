@@ -25,13 +25,6 @@ void InitReader(void)
     ROM_DDR |= (1<<ROM_CE) | (1<<ROM_OE);
     SO_DDR |= (1<<SO_SHLD) | (1<<SO_CLK) |
             (1<<SO_CLK_INH) | (1<<SO_CLR);
-    // bring them all to zero
-    SI_PORT &= ~((1<<SI_SER) | (1<<SI_SRCLK) |
-            (1<<SI_SRCLR) | (1<<SI_RCLK) |
-            (1<<SI_OE));
-    ROM_PORT &= ~((1<<ROM_CE) | (1<<ROM_OE));
-    SO_PORT &= ~((1<<SO_SHLD) | (1<<SO_CLK) |
-            (1<<SO_CLK_INH) | (1<<SO_CLR));
 
     // set serial input data pin as input
     SO_DDR &= ~(1<<SO_QH);
@@ -66,7 +59,7 @@ reader_status_t ResetReader(void)
     // ---------------------------------------------
 
     // ----- reset mask rom ------------------------
-    ROM_PORT &= ~(1<<ROM_CE); // chip enabled
+    ROM_PORT |= (1<<ROM_CE); // chip disabled
     ROM_PORT |= (1<<ROM_OE); // output disabled
     // ---------------------------------------------
 
@@ -116,9 +109,9 @@ reader_status_t ResetReader(void)
     // clean up (74HC166)
     SO_PORT &= ~(1<<SO_CLK); // reset clock to zero
     SO_PORT &= ~(1<<SO_CLR); // register clear
+    SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode
     _delay_us(1.0f);
     SO_PORT |= (1<<SO_CLR); // register out-of-clear
-    SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode
     // ---------------------------------------------
 
     return status;
@@ -133,15 +126,16 @@ uint8_t ReadByteReader(uint32_t addr)
      * 1. 20-bit address bus (carts up to 8-Mbit)
      * 2. 23-bit address bus (carts up to 32-Mbit)
      *
-     * Assumption: always read 23-bit addr bus
+     * Assumption: always read 24-bit addr bus
+     * (since i have 3x 74HC595 which gives me 3*8 = 24 bit address bus)
      */
 
     // 1st: shift the addr data in the 595 regs
-    const uint8_t no_of_addr_bits = 23;
+    const uint8_t no_of_addr_bits = 24;
     const uint32_t raddress = addr;
     for(uint8_t i = 0; i < no_of_addr_bits; i++)
     {
-        uint8_t bit = ((uint8_t)(raddress>>(no_of_addr_bits-i))&0x01);
+        uint8_t bit = ((uint8_t)(raddress>>((no_of_addr_bits-1)-i))&0x01);
         if(bit == 1)
             SI_PORT |= (1<<SI_SER);
         else
@@ -160,6 +154,7 @@ uint8_t ReadByteReader(uint32_t addr)
     SI_PORT &= ~(1<<SI_RCLK);
     _delay_us(SI_CLOCK_HALF_PERIOD);
     SI_PORT &= ~(1<<SI_OE); // 595 regs outputs enable
+    ROM_PORT &= ~(1<<ROM_CE); // mask rom chip enable
     ROM_PORT &= ~(1<<ROM_OE); // mask rom output enable
     _delay_us(ROM_SETUPTIME); // mask rom setup time
 
@@ -172,7 +167,10 @@ uint8_t ReadByteReader(uint32_t addr)
     _delay_us(SO_CLOCK_HALF_PERIOD);
     SO_PORT &= ~(1<<SO_CLK);
     _delay_us(SO_CLOCK_HALF_PERIOD);
+
+    // serial data acquire
     SO_PORT |= (1<<SO_SHLD); // enable shift mode in 74HC166
+    _delay_us(1.0f);
     // QH pin is already showing us what's the MSB (QH) bit
     for(uint8_t i = 0; i < no_of_data_bits; i++)
     {
@@ -195,8 +193,10 @@ uint8_t ReadByteReader(uint32_t addr)
 
     // small clean up
     SI_PORT |= (1<<SI_OE); // 595 regs output disable
+    ROM_PORT |= (1<<ROM_CE); // mask rom chip disable
     ROM_PORT |= (1<<ROM_OE); // mask rom output disable
     SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode in 74HC166
+    _delay_us(1.0f);
 
     retval = gained_val;
 

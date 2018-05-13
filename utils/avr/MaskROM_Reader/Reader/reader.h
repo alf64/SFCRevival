@@ -25,7 +25,7 @@
 // on AVR i am setting this to 1 us
 #define SI_SER_SETUPTIME 1.0f
 // mask rom setup time: addr -> data. Setting to 1 us.
-#define ROM_SETUPTIME 1.0f
+#define ROM_SETUPTIME 2.0f
 /*
  * ------
  */
