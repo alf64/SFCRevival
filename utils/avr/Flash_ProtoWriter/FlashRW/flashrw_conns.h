@@ -1,22 +1,25 @@
 /*
- * connections.h
+ * flashrw_conns.h
  *
- *  Created on: 3 mar 2018
+ *  Created on: 30 wrz 2018
  *      Author: alf64
  */
 
+#ifndef FLASHRW_CONNS_H_
+#define FLASHRW_CONNS_H_
+
 /*
  * This file defines connections between
- * AVR pins (Reader module) and outside world.
+ * AVR pins (FlashRW module) and outside world.
  */
-
-#ifndef CONNECTIONS_H_
-#define CONNECTIONS_H_
 
 /*
  * ASSUMPTION:
  * All pins of a specific IC are supposed to be
  * connected to a common (the same) port of AVR.
+ *
+ * If not, please remember to extinguish the ports defines.
+ * (i.e. make SI_PORT1 and SI_PORT2 and be aware of the assigned pins)
  */
 
 // ------------ 3x 74HC595 for giving address ----------
@@ -67,34 +70,43 @@
 #define SI_OE PA4
 // -------------------------------------------
 
-
-// -------------- Ninny's Mask ROM ------------
-#define ROM_PORT PORTA
-#define ROM_DDR DDRA
+// ---------- Flash IC connections -----------
+#define FLASHIC_PORT1 PORTA
+#define FLASHIC_DDR1 DDRA
 
 /*
- * ROM Chip Enable
+ * Flash Chip Enable
  *
- * Enables MaskRom Chip.
+ * Enables Flash Chip.
  * Otherwise it stays in standby mode
  * (high-impdenace no matter what's on ROM_OE)
  *
  * Active (Enable) on '0'.
  */
-#define ROM_CE PA5
+#define FLASHIC_CE PA5
 
 /*
  * ROM Outputs Enable
  *
- * Enables MaskRom Outputs
+ * Enables Flash Outputs
  * (Data form a given address are now visible
  * on outputs pins, otherwise pins are high-impedance)
  *
  * Active (Enable) on '0'.
  */
-#define ROM_OE PA6
-// -------------------------------------------
+#define FLASHIC_OE PA6
 
+
+#define FLASHIC_PORT2 PORTD
+#define FLASHIC_DDR2 DDRD
+
+/*
+ * Flash Write Enable
+ *
+ * Controls write operations.
+ */
+#define FLASHIC_WE PD6
+// -------------------------------------------
 
 // -------------- 74HC166 ------------
 #define SO_PORT PORTC
@@ -147,5 +159,16 @@
 #define SO_QH PC3
 // ----------------------------------
 
+// ---------- 1x 74HC595 for giving data -----
+// this shares port with 74HC166
+#define SI_OE_DATA PC2
+// -------------------------------------------
 
-#endif /* CONNECTIONS_H_ */
+// ----------- 74LVC4245 ---------------------
+// this shares port with 74HC166
+#define DATA_OE PC1
+#define DATA_DIR PC0
+// -------------------------------------------
+
+
+#endif /* FLASHRW_CONNS_H_ */

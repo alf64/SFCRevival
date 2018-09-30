@@ -8,6 +8,8 @@
 /*
  * This program reads Ninny's MaskROM 8Mbit.
  *
+ * HW requirements: MaskROM_Reader.
+ *
  * F_CPU shall be set in Eclipse or manually to 11,0592 MHz.
  * The TARGET shall be set to Atmega32.
  */

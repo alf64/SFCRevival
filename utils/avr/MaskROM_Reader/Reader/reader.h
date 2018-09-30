@@ -24,7 +24,7 @@
 // set up time: SI_SER before raising_edge(SI_SRCLK): doc says 30 ns
 // on AVR i am setting this to 1 us
 #define SI_SER_SETUPTIME 1.0f
-// mask rom setup time: addr -> data. Setting to 1 us.
+// mask rom setup time: addr -> data. Setting to 2 us.
 #define ROM_SETUPTIME 2.0f
 /*
  * ------
