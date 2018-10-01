@@ -74,7 +74,11 @@ int main(void)
     CommSendMsgFromFlash(msg_01, (sizeof(msg_01)-1));
 
     InitFlashRW();
-    //TODO: implement ResetFlashRW here
+    flashrw_status_t f_stat = ResetFlashRW();
+    if(f_stat != FLASHRW_SUCCESS)
+        while(1); // stuck forever
+
+    //TODO: implement user input handling here
 
 	for(;;); //forever loop
 

@@ -46,4 +46,23 @@ typedef enum{
  */
 void InitFlashRW(void);
 
+/*
+ * @brief Resets reader HW.
+ *
+ * @details
+ * This function sets every IC of the flashrw
+ * to some initial/beginning state.
+ * This state is as follows:
+ * All of serial input shift registers are filled with '0's.
+ * These registers outputs are disabled.
+ * Parallel input shift register is filled with '0's using its
+ * serial input pin (assuming it's connected to the ground).
+ * FLASH IC is turned into read mode and its outputs are disabled.
+ *
+ * @returns flashrw_status_t
+ * @retval FLASHRW_SUCCESS If function succeeded to reset the reader HW.
+ * @retval FLASHRW_FAILED If function failed.
+ */
+flashrw_status_t ResetFlashRW(void);
+
 #endif /* FLASHRW_FLASHRW_H_ */

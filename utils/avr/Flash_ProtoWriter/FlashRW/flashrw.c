@@ -44,3 +44,81 @@ void InitFlashRW(void)
      */
     SO_PORT &= ~(1<<SO_QH);
 }
+
+flashrw_status_t ResetFlashRW(void)
+{
+    // ----- reset 74HC595's - there 3 + 1 of them -----
+    SI_PORT |= (1<<SI_OE); // output disable (3x 74HC595)
+    SO_PORT |= (1<<SI_OE_DATA); // output disable (1x 74HC595)
+    SI_PORT &= ~(1<<SI_SRCLR); // Shift register clear
+    SI_PORT &= ~(1<<SI_SRCLK); // reset shift reg clock to zero
+    SI_PORT &= ~(1<<SI_RCLK); // reset load reg clock to zero
+    _delay_us(1.0f);
+    SI_PORT |= (1<<SI_SRCLR); // Shift register out-of-clear
+    // ---------------------------------------------
+
+    // ----- reset flash ic ------------------------
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // chip disabled
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // output disabled
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // write disable
+    // ---------------------------------------------
+
+    // ----- reset 74LVC4245 -----------------------
+    SO_PORT &= ~(1<<DATA_DIR); // direction: B->A
+    SO_PORT |= (1<<DATA_OE); // isolation
+    // ---------------------------------------------
+
+    // ----- reset & test 74HC166 -------------------
+    SO_PORT &= ~(1<<SO_CLK); // reset clock to zero
+    SO_PORT |= (1<<SO_SHLD); // enable serial-in mode
+    SO_PORT &= ~(1<<SO_CLR); // register clear
+    SO_PORT &= ~(1<<SO_CLK_INH); // clock allow
+    _delay_us(1.0f);
+    SO_PORT |= (1<<SO_CLR); // register out-of-clear
+
+    // now let's stuff the register with default value,
+    // depending on whatever is connected to SER pin
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+        SO_PORT &= ~(1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+        SO_PORT |= (1<<SO_CLK);
+    }
+
+    // now the register shall be filled with '0's or '1's
+    // QH pin is already showing us what's the MSB (QH) bit
+    // let's read it all!
+    uint8_t gained_val = 0xBE;
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        uint8_t pin_read = ((SO_PIN>>SO_QH)&0x01);
+        if(pin_read == 0)
+        {
+            gained_val &= ~(1<<(7-i));
+        }
+        else
+        {
+            gained_val |= (1<<(7-i));
+        }
+
+        SO_PORT &= ~(1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+        SO_PORT |= (1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+    }
+
+    // now we shall have gained_val either 0x0 or 0xFF
+    if( (gained_val != 0x0) && (gained_val != 0xFF) )
+        return FLASHRW_FAILED;
+
+    // clean up (74HC166)
+    SO_PORT &= ~(1<<SO_CLK); // reset clock to zero
+    SO_PORT &= ~(1<<SO_CLR); // register clear
+    SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode
+    _delay_us(1.0f);
+    SO_PORT |= (1<<SO_CLR); // register out-of-clear
+    // ---------------------------------------------
+
+    return FLASHRW_SUCCESS;
+}
