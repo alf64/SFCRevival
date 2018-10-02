@@ -50,6 +50,11 @@
 
 // ------ user interaction ------
 const char msg_01[] PROGMEM = "Welcome to FLASH_ProtoWriter. What do you want to do ?";
+const char msg_02[] PROGMEM = "1. Read the first byte from FLASH IC.";
+const char msg_03[] PROGMEM = "1. Write the first byte to FLASH IC.";
+const char msg_04[] PROGMEM = "Choose [1 - 2]: ";
+const char msg_05[] PROGMEM = "Unrecognized option.";
+char user_input[1];
 // ------------------------------
 
 int main(void)
@@ -72,13 +77,35 @@ int main(void)
 
     // first interaction with user...
     CommSendMsgFromFlash(msg_01, (sizeof(msg_01)-1));
+    CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
+    CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
+    CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
+    while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
+    CommSendMsg(user_input, 1); // echo
 
     InitFlashRW();
     flashrw_status_t f_stat = ResetFlashRW();
     if(f_stat != FLASHRW_SUCCESS)
         while(1); // stuck forever
 
-    //TODO: implement user input handling here
+    switch(user_input[0])
+    {
+        case '1':
+        {
+            //TODO: implement single byte read here
+            break;
+        }
+        case '2':
+        {
+            //TODO: implement single byte write here
+            break;
+        }
+        default:
+        {
+            CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
+            break;
+        }
+    }
 
 	for(;;); //forever loop
 
