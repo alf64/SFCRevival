@@ -122,3 +122,88 @@ flashrw_status_t ResetFlashRW(void)
 
     return FLASHRW_SUCCESS;
 }
+
+uint8_t ReadByteFlashRW(uint32_t addr)
+{
+    uint8_t retval = 0;
+
+    /*
+     * There are 4 74HC595 ICs in a chain.
+     * 3 for address (3 * 8 bit) and 1 for data (8 bit).
+     * Even if only 24 bits are for the valid address, we need to put
+     * all 32 bits into the chain, to fill all the ICs. This ensures that we always
+     * load all the chain (prevents from bugs).
+     */
+
+    // 1st: shift the addr data in the 595 regs
+    const uint8_t no_of_addr_bits = 32;
+    const uint32_t raddress = addr;
+    for(uint8_t i = 0; i < no_of_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(raddress>>((no_of_addr_bits-1)-i))&0x01);
+        if(bit == 1)
+            SI_PORT |= (1<<SI_SER);
+        else
+            SI_PORT &= ~(1<<SI_SER);
+
+        _delay_us(SI_SER_SETUPTIME);
+        SI_PORT |= (1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+        SI_PORT &= ~(1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+    }
+
+    // 2nd: load the addr data onto flash ic
+    SI_PORT |= (1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs outputs enable
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // flashic chip enabled
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_OE); // flashic output enabled
+    _delay_us(FLASHIC_SETUPTIME); // flash ic setup time
+
+    // 3rd: read the data from flash ic
+    const uint8_t no_of_data_bits = 8;
+    // let's read it all!
+    uint8_t gained_val = 0xBE;
+    // now, assuming the 166 is in parallel-load mode... Load the data to internal 166 reg!
+    SO_PORT |= (1<<SO_CLK);
+    _delay_us(SO_CLOCK_HALF_PERIOD);
+    SO_PORT &= ~(1<<SO_CLK);
+    _delay_us(SO_CLOCK_HALF_PERIOD);
+
+    // serial data acquire
+    SO_PORT |= (1<<SO_SHLD); // enable shift mode in 74HC166
+    _delay_us(1.0f);
+    // QH pin is already showing us what's the MSB (QH) bit
+    for(uint8_t i = 0; i < no_of_data_bits; i++)
+    {
+        uint8_t pin_read = ((SO_PIN>>SO_QH)&0x01);
+        if(pin_read == 0)
+        {
+            gained_val &= ~(1<<(7-i));
+        }
+        else
+        {
+            gained_val |= (1<<(7-i));
+        }
+
+        // shift the data
+        SO_PORT |= (1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+        SO_PORT &= ~(1<<SO_CLK);
+        _delay_us(SO_CLOCK_HALF_PERIOD);
+    }
+
+    //small clean up
+    SI_PORT |= (1<<SI_OE); // 595 regs output disable
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash chip disable
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // flash chip output disable
+    SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode in 74HC166
+    _delay_us(1.0f);
+
+    retval = gained_val;
+
+    return retval;
+}

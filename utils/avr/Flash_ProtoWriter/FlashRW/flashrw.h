@@ -29,7 +29,7 @@
  * Doc says: 70 - 90 ns.
  * Setting to 2 us.
  */
-#define FLASH_SETUPTIME 2.0f
+#define FLASHIC_SETUPTIME 2.0f
 // --------------------------
 
 typedef enum{
@@ -64,5 +64,14 @@ void InitFlashRW(void);
  * @retval FLASHRW_FAILED If function failed.
  */
 flashrw_status_t ResetFlashRW(void);
+
+/*
+ * @brief Reads byte from a given address.
+ *
+ * @param addr An address to read a byte from.
+ *
+ * @returns Byte read from a given addr.
+ */
+uint8_t ReadByteFlashRW(uint32_t addr);
 
 #endif /* FLASHRW_FLASHRW_H_ */

@@ -50,10 +50,11 @@
 
 // ------ user interaction ------
 const char msg_01[] PROGMEM = "Welcome to FLASH_ProtoWriter. What do you want to do ?";
-const char msg_02[] PROGMEM = "1. Read the first byte from FLASH IC.";
-const char msg_03[] PROGMEM = "1. Write the first byte to FLASH IC.";
-const char msg_04[] PROGMEM = "Choose [1 - 2]: ";
-const char msg_05[] PROGMEM = "Unrecognized option.";
+const char msg_02[] PROGMEM = "1. Erase the first sector from FLASH IC.";
+const char msg_03[] PROGMEM = "2. Read the first byte from FLASH IC.";
+const char msg_04[] PROGMEM = "3. Write the first byte to FLASH IC.";
+const char msg_05[] PROGMEM = "Choose [1 - 3]: ";
+const char msg_06[] PROGMEM = "Unrecognized option.";
 char user_input[1];
 // ------------------------------
 
@@ -80,6 +81,7 @@ int main(void)
     CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
     CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
     CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
+    CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
     while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
     CommSendMsg(user_input, 1); // echo
 
@@ -92,17 +94,23 @@ int main(void)
     {
         case '1':
         {
-            //TODO: implement single byte read here
+            //TODO: implement sector erase here
             break;
         }
         case '2':
+        {
+            uint8_t bt = ReadByteFlashRW((uint32_t)0x00000000);
+            c_stat = CommSendByteAsHexAscii(bt);
+            break;
+        }
+        case '3':
         {
             //TODO: implement single byte write here
             break;
         }
         default:
         {
-            CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
+            CommSendMsgFromFlash(msg_06, (sizeof(msg_06)-1));
             break;
         }
     }
