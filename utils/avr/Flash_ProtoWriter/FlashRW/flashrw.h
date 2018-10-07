@@ -30,6 +30,42 @@
  * Setting to 2 us.
  */
 #define FLASHIC_SETUPTIME 2.0f
+
+/*
+ * WE pulse width time.
+ * Doc says 40ns, setting to 1us.
+ */
+#define FLASHIC_WE_LOW_TIME 1.0f
+
+/*
+ * WE pulse width high time.
+ * Doc says 30ns, setting to 1us.
+ */
+#define FLASHIC_WE_HIGH_TIME 1.0f
+
+/*
+ * Sector-Erase internal operation time in ms.
+ * Doc says it can be up to 25 ms.
+ */
+#define FLASHIC_SECTOR_ERASE_TIME 26
+
+/*
+ * Block-Erase internal operation time in ms.
+ * Doc says it can be up to 25 ms.
+ */
+#define FLASHIC_BLOCK_ERASE_TIME 26
+
+/*
+ * Chip-Erase internal operation time in ms.
+ * Doc says it can be up to 50 ms.
+ */
+#define FLASHIC_CHIP_ERASE_TIME 51
+
+/*
+ * Byte-Program internal operation time in us.
+ * Doc says it can be up to 10us.
+ */
+#define FLASHIC_BYTE_PROGRAM_TIME 11
 // --------------------------
 
 typedef enum{
@@ -73,5 +109,59 @@ flashrw_status_t ResetFlashRW(void);
  * @returns Byte read from a given addr.
  */
 uint8_t ReadByteFlashRW(uint32_t addr);
+
+/*
+ * @brief Writes data (8-bit) to the flash ic.
+ *
+ * @param data A byte to be written into flash ic.
+ * @param addr An address (max 24 bit) where the data shall be written.
+ */
+void WriteByteFlashRW(
+        uint8_t data,
+        uint32_t address);
+
+/*
+ * @brief Erases sector of memory from FLASH IC.
+ *
+ * @details
+ * Assuming sector size is 4096 (0x1000) bytes,
+ * so the given addr may be anything and
+ * the sector address will be obtained by performing
+ * & ~(0xFFF)
+ *
+ * Example:
+ *  - you are giving addr = 0x01
+ *  - obtained sector address will be: 0x00
+ *  - entire sector (addresses: 0x00 - 0xFFF will be erased)
+ *
+ * @param addr
+ * The address of a byte. The sector address of a given address
+ * will be obtained and this sector will be erased.
+ */
+void SectorEraseFlashRW(uint32_t addr);
+
+/*
+ * @brief Erases block of memory from FLASH IC.
+ *
+ * Assuming block size is 64kB = 65536 (0x10000) bytes,
+ * so the given addr may be anything and
+ * the block address will be obtained by performing
+ * & ~(0xFFFF)
+ *
+ * Example:
+ *  - you are giving addr = 0x1FFFFF
+ *  - obtained block address will be: 0x1F
+ *  - entire block (addresses: 0x1F0000 - 0x1FFFFF will be erased)
+ *
+ * @param addr
+ * The address of a byte. The block address of a given address
+ * will be obtained and this block will be erased.
+ */
+void BlockEraseFlashRW(uint32_t addr);
+
+/*
+ * @bried Erases the whole FLASH IC.
+ */
+void ChipEraseFlashRW(void);
 
 #endif /* FLASHRW_FLASHRW_H_ */

@@ -207,3 +207,276 @@ uint8_t ReadByteFlashRW(uint32_t addr)
 
     return retval;
 }
+
+/*
+ * Shifts in given:
+ * (max 24 bit) addr and (max 8bit) data into 74HC595 chain
+ * and turns on registers outputs.
+ *
+ * @param data_addr
+ * This is uint32_t variable from which:
+ *  a) the MSB 8-bit is treated as data to be loaded into flash ic
+ *  b) the rest 24-bit is treated as addr for the data to fall into flash ic
+ */
+void ProvideAddrAndDataFlashRW(
+        uint32_t data_addr)
+{
+    // 1st: shift the addr data in the 595 regs
+    const uint8_t no_of_addr_bits = 32;
+    const uint32_t raddress = data_addr;
+    for(uint8_t i = 0; i < no_of_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(raddress>>((no_of_addr_bits-1)-i))&0x01);
+        if(bit == 1)
+            SI_PORT |= (1<<SI_SER);
+        else
+            SI_PORT &= ~(1<<SI_SER);
+
+        _delay_us(SI_SER_SETUPTIME);
+        SI_PORT |= (1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+        SI_PORT &= ~(1<<SI_SRCLK);
+        _delay_us(SI_CLOCK_HALF_PERIOD);
+    }
+
+    // 2nd: load the addr data onto flash ic
+    SI_PORT |= (1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_RCLK);
+    _delay_us(SI_CLOCK_HALF_PERIOD);
+    SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs (with addr) outputs enable
+    SO_PORT &= ~(1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output enable
+}
+
+void WriteByteFlashRW(
+        uint8_t data,
+        uint32_t address)
+{
+    // zero out the MSB 8-bit, since these are for data
+    uint32_t addr = address & (~((uint32_t)0xFF000000));
+    // concatenate data & addr
+    uint32_t dataaddr = (((uint32_t)data)<<24) | addr;
+
+    // prepare FLASH IC for WE# controlled Byte-Program
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0xA0 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xA0000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide data onto the addr
+    ProvideAddrAndDataFlashRW(dataaddr);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // wait for the internal Program operation to complete
+    _delay_us(FLASHIC_BYTE_PROGRAM_TIME);
+
+    // clean things up
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
+    SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+}
+
+void SectorEraseFlashRW(uint32_t addr)
+{
+    uint32_t sector_addr = addr & (~((uint32_t)0xFFF)); // zero out the 4096-1 part
+    sector_addr = sector_addr & (~((uint32_t)0xFF000000)); // zero out the part for data
+
+    // prepare FLASH IC for WE# controlled Sector-Erase
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x80 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x80000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x50 data onto sector_addr
+    uint32_t data_saddr = (((uint32_t)(0x50))<<24) | sector_addr;
+    ProvideAddrAndDataFlashRW(data_saddr);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // wait for the internal Sector-Erase Operation to complete
+    _delay_ms(FLASHIC_SECTOR_ERASE_TIME);
+
+    // clean things up
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
+    SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+}
+
+void BlockEraseFlashRW(uint32_t addr)
+{
+    uint32_t block_addr = addr & (~((uint32_t)0xFFFF)); // zero out the 65536-1 part
+    block_addr = block_addr & (~((uint32_t)0xFF000000)); // zero out the part for data
+
+    // prepare FLASH IC for WE# controlled Block-Erase
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x80 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x80000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x30 data onto block_addr
+    uint32_t data_baddr = (((uint32_t)(0x30))<<24) | block_addr;
+    ProvideAddrAndDataFlashRW(data_baddr);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // wait for the internal Block-Erase Operation to complete
+    _delay_ms(FLASHIC_BLOCK_ERASE_TIME);
+
+    // clean things up
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
+    SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+}
+
+void ChipEraseFlashRW(void)
+{
+    // prepare FLASH IC for WE# controlled Sector-Erase
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x80 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x80000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x10 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x10000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // wait for the internal Sector-Erase Operation to complete
+    _delay_ms(FLASHIC_CHIP_ERASE_TIME);
+
+    // clean things up
+    FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
+    SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+}

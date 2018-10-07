@@ -55,6 +55,8 @@ const char msg_03[] PROGMEM = "2. Read the first byte from FLASH IC.";
 const char msg_04[] PROGMEM = "3. Write the first byte to FLASH IC.";
 const char msg_05[] PROGMEM = "Choose [1 - 3]: ";
 const char msg_06[] PROGMEM = "Unrecognized option.";
+const char msg_07[] PROGMEM = "First sector erased.";
+const char msg_08[] PROGMEM = "First byte programmed.";
 char user_input[1];
 // ------------------------------
 
@@ -94,7 +96,8 @@ int main(void)
     {
         case '1':
         {
-            //TODO: implement sector erase here
+            SectorEraseFlashRW((uint32_t)0x0);
+            CommSendMsgFromFlash(msg_07, (sizeof(msg_07)-1));
             break;
         }
         case '2':
@@ -105,7 +108,8 @@ int main(void)
         }
         case '3':
         {
-            //TODO: implement single byte write here
+            WriteByteFlashRW(0xAB, (uint32_t)0x00000000);
+            CommSendMsgFromFlash(msg_08, (sizeof(msg_08)-1));
             break;
         }
         default:
