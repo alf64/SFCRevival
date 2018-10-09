@@ -161,6 +161,8 @@ uint8_t ReadByteFlashRW(uint32_t addr)
     SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs outputs enable
     FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // flashic chip enabled
     FLASHIC_PORT1 &= ~(1<<FLASHIC_OE); // flashic output enabled
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
     _delay_us(FLASHIC_SETUPTIME); // flash ic setup time
 
     // 3rd: read the data from flash ic
@@ -200,6 +202,7 @@ uint8_t ReadByteFlashRW(uint32_t addr)
     SI_PORT |= (1<<SI_OE); // 595 regs output disable
     FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash chip disable
     FLASHIC_PORT1 |= (1<<FLASHIC_OE); // flash chip output disable
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
     SO_PORT &= ~(1<<SO_SHLD); // enable parallel-load mode in 74HC166
     _delay_us(1.0f);
 
@@ -262,6 +265,10 @@ void WriteByteFlashRW(
     FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
     FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
 
+    // prepare 74lvc4245
+    SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
     FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
@@ -297,6 +304,8 @@ void WriteByteFlashRW(
     FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
     SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
 }
 
 void SectorEraseFlashRW(uint32_t addr)
@@ -308,6 +317,10 @@ void SectorEraseFlashRW(uint32_t addr)
     FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
     FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
     FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // prepare 74lvc4245
+    SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -359,6 +372,8 @@ void SectorEraseFlashRW(uint32_t addr)
     FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
     SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
 }
 
 void BlockEraseFlashRW(uint32_t addr)
@@ -370,6 +385,10 @@ void BlockEraseFlashRW(uint32_t addr)
     FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
     FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
     FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // prepare 74lvc4245
+    SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -421,6 +440,8 @@ void BlockEraseFlashRW(uint32_t addr)
     FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
     SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
 }
 
 void ChipEraseFlashRW(void)
@@ -429,6 +450,10 @@ void ChipEraseFlashRW(void)
     FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
     FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
     FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // prepare 74lvc4245
+    SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -479,4 +504,6 @@ void ChipEraseFlashRW(void)
     FLASHIC_PORT1 |= (1<<FLASHIC_CE); // flash ic chip disable
     SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
 }
