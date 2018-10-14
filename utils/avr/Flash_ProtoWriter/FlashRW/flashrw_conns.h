@@ -97,15 +97,15 @@
 #define FLASHIC_OE PA6
 
 
-#define FLASHIC_PORT2 PORTD
-#define FLASHIC_DDR2 DDRD
+#define FLASHIC_PORT2 PORTA
+#define FLASHIC_DDR2 DDRA
 
 /*
  * Flash Write Enable
  *
  * Controls write operations.
  */
-#define FLASHIC_WE PD6
+#define FLASHIC_WE PA7
 // -------------------------------------------
 
 // -------------- 74HC166 ------------

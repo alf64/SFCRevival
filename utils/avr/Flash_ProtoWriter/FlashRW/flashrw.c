@@ -224,9 +224,15 @@ uint8_t ReadByteFlashRW(uint32_t addr)
 void ProvideAddrAndDataFlashRW(
         uint32_t data_addr)
 {
+    // disable outputs for the time of shifting in
+    SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    _delay_us(1);
+
     // 1st: shift the addr data in the 595 regs
     const uint8_t no_of_addr_bits = 32;
     const uint32_t raddress = data_addr;
+
     for(uint8_t i = 0; i < no_of_addr_bits; i++)
     {
         uint8_t bit = ((uint8_t)(raddress>>((no_of_addr_bits-1)-i))&0x01);
@@ -247,6 +253,7 @@ void ProvideAddrAndDataFlashRW(
     _delay_us(SI_CLOCK_HALF_PERIOD);
     SI_PORT &= ~(1<<SI_RCLK);
     _delay_us(SI_CLOCK_HALF_PERIOD);
+
     SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs (with addr) outputs enable
     SO_PORT &= ~(1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output enable
 }
