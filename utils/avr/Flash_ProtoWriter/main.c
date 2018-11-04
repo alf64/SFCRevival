@@ -49,14 +49,18 @@
 
 
 // ------ user interaction ------
-const char msg_01[] PROGMEM = "Welcome to FLASH_ProtoWriter. What do you want to do ?";
+const char msg_01[] PROGMEM = "\nWelcome to FLASH_ProtoWriter. What do you want to do ?";
 const char msg_02[] PROGMEM = "1. Erase the first sector from FLASH IC.";
 const char msg_03[] PROGMEM = "2. Read the first byte from FLASH IC.";
 const char msg_04[] PROGMEM = "3. Write the first byte to FLASH IC.";
-const char msg_05[] PROGMEM = "Choose [1 - 3]: ";
-const char msg_06[] PROGMEM = "Unrecognized option.";
-const char msg_07[] PROGMEM = "First sector erased.";
-const char msg_08[] PROGMEM = "First byte programmed.";
+const char msg_05[] PROGMEM = "4. Erase the whole FLASH chip.";
+const char msg_06[] PROGMEM = "5. Debug scenario 1.";
+
+const char msg_10[] PROGMEM = "Choose [1 - 3]: ";
+const char msg_11[] PROGMEM = "Unrecognized option.";
+const char msg_12[] PROGMEM = "First sector erased.";
+const char msg_13[] PROGMEM = "First byte programmed.";
+const char msg_14[] PROGMEM = "Flash chip erased.";
 char user_input[1];
 // ------------------------------
 
@@ -78,44 +82,55 @@ int main(void)
     if(c_stat != COMM_SUCCESS)
         while(1); // stuck here forever
 
-    // first interaction with user...
-    CommSendMsgFromFlash(msg_01, (sizeof(msg_01)-1));
-    CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
-    CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
-    CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
-    CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
-    while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
-    CommSendMsg(user_input, 1); // echo
-
     InitFlashRW();
     flashrw_status_t f_stat = ResetFlashRW();
     if(f_stat != FLASHRW_SUCCESS)
         while(1); // stuck forever
 
-    switch(user_input[0])
+    for(;;)
     {
-        case '1':
+        // interaction with user...
+        CommSendMsgFromFlash(msg_01, (sizeof(msg_01)-1));
+        CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
+        CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
+        CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
+        CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
+        CommSendMsgFromFlash(msg_06, (sizeof(msg_06)-1));
+        CommSendMsgFromFlash(msg_10, (sizeof(msg_10)-1));
+        while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
+        CommSendMsg(user_input, 1); // echo
+
+        switch(user_input[0])
         {
-            SectorEraseFlashRW((uint32_t)0x0);
-            CommSendMsgFromFlash(msg_07, (sizeof(msg_07)-1));
-            break;
-        }
-        case '2':
-        {
-            uint8_t bt = ReadByteFlashRW((uint32_t)0x00000000);
-            c_stat = CommSendByteAsHexAscii(bt);
-            break;
-        }
-        case '3':
-        {
-            WriteByteFlashRW(0xAB, (uint32_t)0x00000000);
-            CommSendMsgFromFlash(msg_08, (sizeof(msg_08)-1));
-            break;
-        }
-        default:
-        {
-            CommSendMsgFromFlash(msg_06, (sizeof(msg_06)-1));
-            break;
+            case '1':
+            {
+                SectorEraseFlashRW((uint32_t)0x0);
+                CommSendMsgFromFlash(msg_12, (sizeof(msg_12)-1));
+                break;
+            }
+            case '2':
+            {
+                uint8_t bt = ReadByteFlashRW((uint32_t)0x00000000);
+                c_stat = CommSendByteAsHexAscii(bt);
+                break;
+            }
+            case '3':
+            {
+                WriteByteFlashRW(0xAB, (uint32_t)0x00000000);
+                CommSendMsgFromFlash(msg_13, (sizeof(msg_13)-1));
+                break;
+            }
+            case '4':
+            {
+                ChipEraseFlashRW();
+                CommSendMsgFromFlash(msg_14, (sizeof(msg_14)-1));
+                break;
+            }
+            default:
+            {
+                CommSendMsgFromFlash(msg_11, (sizeof(msg_11)-1));
+                break;
+            }
         }
     }
 
