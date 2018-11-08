@@ -87,6 +87,9 @@ int main(void)
     if(f_stat != FLASHRW_SUCCESS)
         while(1); // stuck forever
 
+    // warm-up time
+    _delay_us(100.0f);
+
     for(;;)
     {
         // interaction with user...

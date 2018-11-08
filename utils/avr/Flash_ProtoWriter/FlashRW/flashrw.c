@@ -256,6 +256,7 @@ void ProvideAddrAndDataFlashRW(
 
     SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs (with addr) outputs enable
     SO_PORT &= ~(1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output enable
+    _delay_us(1);
 }
 
 void WriteByteFlashRW(
@@ -275,6 +276,9 @@ void WriteByteFlashRW(
     // prepare 74lvc4245
     SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
     SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -313,6 +317,9 @@ void WriteByteFlashRW(
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
     SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
     SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 }
 
 void SectorEraseFlashRW(uint32_t addr)
@@ -328,6 +335,9 @@ void SectorEraseFlashRW(uint32_t addr)
     // prepare 74lvc4245
     SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
     SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -381,6 +391,9 @@ void SectorEraseFlashRW(uint32_t addr)
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
     SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
     SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 }
 
 void BlockEraseFlashRW(uint32_t addr)
@@ -396,6 +409,9 @@ void BlockEraseFlashRW(uint32_t addr)
     // prepare 74lvc4245
     SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
     SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -449,6 +465,9 @@ void BlockEraseFlashRW(uint32_t addr)
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
     SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
     SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 }
 
 void ChipEraseFlashRW(void)
@@ -461,6 +480,9 @@ void ChipEraseFlashRW(void)
     // prepare 74lvc4245
     SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
     SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 
     // provide 0xAA data onto 0xAAA addr
     ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
@@ -513,4 +535,7 @@ void ChipEraseFlashRW(void)
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
     SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
     SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
 }
