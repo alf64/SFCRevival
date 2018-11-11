@@ -129,6 +129,12 @@ int main(void)
                 CommSendMsgFromFlash(msg_14, (sizeof(msg_14)-1));
                 break;
             }
+            case '5':
+            {
+                uint8_t manufacturer_id = DebugScenario01FlashRW();
+                c_stat = CommSendByteAsHexAscii(manufacturer_id);
+                break;
+            }
             default:
             {
                 CommSendMsgFromFlash(msg_11, (sizeof(msg_11)-1));

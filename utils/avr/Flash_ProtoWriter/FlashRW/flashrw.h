@@ -164,4 +164,7 @@ void BlockEraseFlashRW(uint32_t addr);
  */
 void ChipEraseFlashRW(void);
 
+// Turning FLASH IC into Software ID Entry and read id
+uint8_t DebugScenario01FlashRW(void);
+
 #endif /* FLASHRW_FLASHRW_H_ */

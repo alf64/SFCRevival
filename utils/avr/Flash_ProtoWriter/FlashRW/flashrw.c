@@ -227,7 +227,7 @@ void ProvideAddrAndDataFlashRW(
     // disable outputs for the time of shifting in
     SI_PORT |= (1<<SI_OE); // 3x 74HC595 regs (with addr) outputs disable
     SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
-    _delay_us(1);
+    _delay_us(1.0f);
 
     // 1st: shift the addr data in the 595 regs
     const uint8_t no_of_addr_bits = 32;
@@ -256,7 +256,7 @@ void ProvideAddrAndDataFlashRW(
 
     SI_PORT &= ~(1<<SI_OE); // 3x 74HC595 regs (with addr) outputs enable
     SO_PORT &= ~(1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output enable
-    _delay_us(1);
+    _delay_us(1.0f);
 }
 
 void WriteByteFlashRW(
@@ -538,4 +538,50 @@ void ChipEraseFlashRW(void)
 
     // wait for the 74lvc4245
     _delay_us(1.0f);
+}
+
+uint8_t DebugScenario01FlashRW(void)
+{
+    // prepare FLASH IC for WE# controlled Sector-Erase
+    FLASHIC_PORT1 |= (1<<FLASHIC_OE); // Outputs disable
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE); // hold WE high
+    FLASHIC_PORT1 &= ~(1<<FLASHIC_CE); // Chip enable
+
+    // prepare 74lvc4245
+    SO_PORT |= (1<<DATA_DIR); // 74lvc4245 direction: A->B
+    SO_PORT &= ~(1<<DATA_OE); // 74lvc4245 data flow enable
+
+    // wait for the 74lvc4245
+    _delay_us(1.0f);
+
+    // provide 0xAA data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0xAA000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x55 data onto 0x555 addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x55000555);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // provide 0x90 data onto 0xAAA addr
+    ProvideAddrAndDataFlashRW((uint32_t)0x90000AAA);
+    FLASHIC_PORT2 &= ~(1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_LOW_TIME);
+    FLASHIC_PORT2 |= (1<<FLASHIC_WE);
+    _delay_us(FLASHIC_WE_HIGH_TIME);
+
+    // now let's turn into read mode
+    SO_PORT |= (1<<SI_OE_DATA); // 1x 74HC595 reg (with data) output disable
+    SO_PORT |= (1<<DATA_OE); // 74lvc4245 isolation
+    SO_PORT &= ~(1<<DATA_DIR); // 74lvc4245 direction: B->A
+    _delay_us(1.0f); // wait for 74lvc4245
+
+    uint8_t read_bt = ReadByteFlashRW(0x0);
+
+    return read_bt; // shall return 0xBF according to doc
 }
