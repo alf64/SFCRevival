@@ -9,8 +9,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#include "../USARTdrv/usart.h"
-#include "comm.h"
+#include "hal/usart.h"
+#include "Comm/comm.h"
 
 
 char rcvbuff[COMM_RECEIVE_BUFFER_SIZE];

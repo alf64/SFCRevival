@@ -22,7 +22,7 @@
 #include "LEDdrv/led.h"
 #include "Reader/reader.h"
 #include "Comm/comm.h"
-#include "USARTdrv/usart.h"
+#include "hal/usart.h"
 
 
 // ------ user interaction ------

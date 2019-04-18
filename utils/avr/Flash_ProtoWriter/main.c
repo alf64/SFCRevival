@@ -44,7 +44,7 @@
 #include <util/delay.h>
 #include "LEDdrv/led.h"
 #include "Comm/comm.h"
-#include "USARTdrv/usart.h"
+#include "hal/usart.h"
 #include "FlashRW/flashrw.h"
 
 

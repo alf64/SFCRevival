@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "usart.h"
+#include "hal/usart.h"
 
 void UsartInit(uint16_t ubrrvalue)
 {
