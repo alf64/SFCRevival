@@ -38,7 +38,10 @@ comm_status_t CommInit(
             else
             {
                 ubrr = (uint16_t)((f_cpu / (8*baud_rate)) - 1);
-                UsartInit(ubrr); // ubrr = 71 for 19200bps and f_cpu: 11.0592 Mhz
+                // ubrr = 71 for 19200bps and f_cpu: 11.0592 Mhz
+                // ubrr = 35 for 38400bps and f_cpu: 11.0592 Mhz
+                // ubrr = 23 for 38400bps and f_cpu: 11.0592 Mhz
+                UsartInit(ubrr);
             }
             break;
         }
