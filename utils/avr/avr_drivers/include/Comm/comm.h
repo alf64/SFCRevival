@@ -32,7 +32,7 @@ typedef enum{
 /*
  * Default msg for Communication
  */
-static const char defaultmsg[] PROGMEM = "Comm initialization... OK";
+static const char defaultmsg[] PROGMEM = "Comm initialization... OK\n";
 
 /*
  * Inits the Communicator via UART interface.
@@ -81,6 +81,30 @@ comm_status_t CommSendMsg(
 comm_status_t CommSendMsgFromFlash(
         const char* PROGMEM msg,
         uint8_t msg_size);
+
+/*
+ * Sends array of char messages located in program memory, via UART interface.
+ *
+ * @brief
+ * Function expects a pointer to 2-D array of const char type, located in progmem.
+ * Function assumes that each message from the array is ended with \0.
+ *
+ * @param msg_arr A pointer to 2-D array filled with messages, located in progmem.
+ * @param msg_count A number of messages in the given array. Max is: 256.
+ * @param msgs_max_chrs Maximum characters allowed per each message.
+ *
+ * @attention
+ * This function will only work properly if the CommInit() was performed before.
+ * Maximum size of each message in the array is: 256 chars (including '\0')
+ *
+ * @returns comm_status_t.
+ * @retval COMM_SUCCESS Means the function succeeded to init the communicator.
+ * @retval COMM_FAILED Means function failed. Probably unsupported arguments were given.
+ */
+comm_status_t CommSendMsgsArrFromFlash(
+        const char* PROGMEM msg_arr,
+        uint8_t msgs_count,
+		uint8_t msgs_max_chrs);
 
 /*
  * @brief

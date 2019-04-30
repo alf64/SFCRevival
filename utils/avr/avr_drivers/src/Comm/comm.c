@@ -100,6 +100,56 @@ comm_status_t CommSendMsgFromFlash(
     return status;
 }
 
+comm_status_t CommSendMsgsArrFromFlash(
+        const char* PROGMEM msg_arr,
+        uint8_t msgs_count,
+		uint8_t msgs_max_chrs)
+{
+	comm_status_t status = COMM_SUCCESS;
+
+    if((msg_arr == NULL) || (msgs_count == 0))
+        return COMM_FAILED;
+
+    const char* PROGMEM cursor = msg_arr;
+    uint8_t msgs_read = 0;
+    uint8_t msg_chrs_cnt = 0;
+
+	while(msgs_read < msgs_count)
+	{
+		if(msg_chrs_cnt < msgs_max_chrs)
+		{
+			uint8_t bt_read = pgm_read_byte(cursor);
+			if(bt_read != '\0')
+			{
+				UsartTransmit(bt_read);
+				msg_chrs_cnt++;
+			}
+			else
+			{
+				if(pgm_read_byte((cursor+1)) != '\0')
+				{
+				    // end of message detected
+					UsartTransmit(0x0a); // transmit new line character ('\n')
+					msg_chrs_cnt = 0;
+					msgs_read++;
+				}
+				else
+				{
+					msg_chrs_cnt++;
+				}
+			}
+		}
+		else
+		{
+		    return COMM_FAILED; // chrs limit per msg exceeded
+		}
+
+		cursor++;
+	}
+
+	return status;
+}
+
 comm_status_t CommSendByteAsHexAscii(uint8_t data)
 {
     comm_status_t status = COMM_SUCCESS;
