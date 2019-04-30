@@ -104,7 +104,7 @@ comm_status_t CommSendMsgFromFlash(
 comm_status_t CommSendMsgsArrFromFlash(
         const char* PROGMEM msg_arr,
         uint8_t msgs_count,
-		uint8_t msgs_max_chrs);
+        uint8_t msgs_max_chrs);
 
 /*
  * @brief

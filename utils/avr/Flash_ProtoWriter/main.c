@@ -66,12 +66,12 @@ char user_input[1];
 
 int main(void)
 {
-	// turn ON interrupts
-	sei();
+    // turn ON interrupts
+    sei();
 
-	/*
-	 * do not init LEDs - led driver pins conflict with flashrw pins
-	 */
+    /*
+     * do not init LEDs - led driver pins conflict with flashrw pins
+     */
 
     // init communication (via UART) mechanism
     comm_status_t c_stat = CommInit(
@@ -143,7 +143,7 @@ int main(void)
         }
     }
 
-	for(;;); //forever loop
+    for(;;); //forever loop
 
-	return 0;
+    return 0;
 }
