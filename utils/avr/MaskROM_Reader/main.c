@@ -31,7 +31,7 @@ const char msg_02[] PROGMEM = "1. Read a few selected bytes from MaskROM.";
 const char msg_03[] PROGMEM = "2. Read 1 MegaByte from MaskROM.";
 const char msg_04[] PROGMEM = "Choose [1 - 2]: ";
 const char msg_05[] PROGMEM = "Unrecognized option.";
-char user_input[1];
+unsigned char user_input[1];
 // ------------------------------
 
 int main(void)
@@ -57,7 +57,7 @@ int main(void)
     CommSendMsgFromFlash(msg_02, (sizeof(msg_02)-1));
     CommSendMsgFromFlash(msg_03, (sizeof(msg_03)-1));
     CommSendMsgFromFlash(msg_04, (sizeof(msg_04)-1));
-    while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
+    while(CommGetMsg(1, user_input, sizeof(user_input)) != COMM_SUCCESS); // w8 for user input
     CommSendMsg(user_input, 1); // echo
     //user_input[0] = '2';
 

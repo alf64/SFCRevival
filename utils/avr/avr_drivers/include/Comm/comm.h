@@ -121,10 +121,16 @@ comm_status_t CommSendMsgsArrFromFlash(
 comm_status_t CommSendByteAsHexAscii(uint8_t data);
 
 /*
+ * @brief Marks receive msg buffer as empty and fills it with NULLs.
+ */
+void CommCleanMsgBuffer(void);
+
+/*
  * Gets a message from receive buffer.
  *
  * @param msg_size An (expected) size (in bytes) of the message to read.
- * @param msg A pointer where the message shall be copied to.
+ * @param dst A pointer to the buffer where the message shall be copied to.
+ * @param dst_size A size (in bytes) of the dst buffer.
  *
  * @attention
  * This function will only work properly if the CommInit() was performed before.
@@ -140,6 +146,7 @@ comm_status_t CommSendByteAsHexAscii(uint8_t data);
  */
 comm_status_t CommGetMsg(
         uint8_t msg_size,
-        char* msg);
+        unsigned char* dst,
+        uint8_t dst_size);
 
 #endif /* COMM_COMM_H_ */

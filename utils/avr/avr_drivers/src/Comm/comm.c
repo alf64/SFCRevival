@@ -191,13 +191,29 @@ comm_status_t CommSendByteAsHexAscii(uint8_t data)
     return status;
 }
 
+void CommCleanMsgBuffer(void)
+{
+    rcvmsg_end = rcvmsg_start;
+    for(uint8_t i = 0; i < COMM_RECEIVE_BUFFER_SIZE; i++)
+    {
+        rcvbuff[i] = '\0';
+    }
+}
+
 comm_status_t CommGetMsg(
         uint8_t msg_size,
-        char* msg)
+        unsigned char* dst,
+        uint8_t dst_size)
 {
     comm_status_t status = COMM_SUCCESS;
 
-    if(rcvmsg_end == NULL || rcvmsg_end == NULL || msg == NULL)
+    if(rcvmsg_end == NULL || rcvmsg_end == NULL || dst == NULL)
+        return COMM_FAILED;
+
+    if(msg_size > COMM_RECEIVE_BUFFER_SIZE)
+        return COMM_FAILED;
+
+    if(dst_size < msg_size)
         return COMM_FAILED;
 
     uint8_t rcvmsg_len = rcvmsg_end - rcvmsg_start;
@@ -207,7 +223,7 @@ comm_status_t CommGetMsg(
         // it's our message... Copy it!
         for(uint8_t i = 0; i < msg_size; i++)
         {
-            *msg++ = *rcvmsg_start++;
+            *dst++ = *rcvmsg_start++;
         }
 
         // restart rcv buffer. If the buffer has more bytes: we don't care and fry them

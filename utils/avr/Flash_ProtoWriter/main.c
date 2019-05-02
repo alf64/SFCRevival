@@ -61,7 +61,7 @@ const char msg_11[] PROGMEM = "Unrecognized option.";
 const char msg_12[] PROGMEM = "First sector erased.";
 const char msg_13[] PROGMEM = "First byte programmed.";
 const char msg_14[] PROGMEM = "Flash chip erased.";
-char user_input[1];
+unsigned char user_input[1];
 // ------------------------------
 
 int main(void)
@@ -100,7 +100,7 @@ int main(void)
         CommSendMsgFromFlash(msg_05, (sizeof(msg_05)-1));
         CommSendMsgFromFlash(msg_06, (sizeof(msg_06)-1));
         CommSendMsgFromFlash(msg_10, (sizeof(msg_10)-1));
-        while(CommGetMsg(1, user_input) != COMM_SUCCESS); // w8 for user input
+        while(CommGetMsg(1, user_input, sizeof(user_input)) != COMM_SUCCESS); // w8 for user input
         CommSendMsg(user_input, 1); // echo
 
         switch(user_input[0])

@@ -27,7 +27,7 @@
 
 //!< maximums
 #define USR_MSG_MAIN_AVAILABLE_USR_MSGS 9
-#define USR_MSG_MAIN_MAX_CHARS_PER_MSG 25
+#define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
 
 const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM = {
         {"\nWelcome to memi8M!"},
@@ -38,19 +38,30 @@ const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_C
         {"4. Write all memory."},
         {"5. Debug scenario 1."},
         {"6. Debug scenario 2."},
-        {"Select [1 - 6]: "}
+        {"Select [1 - 6] (ascii format): "}
 };
 
 const char usr_msg_unsupported_sel[] PROGMEM = {
         "Unsupported selection."
 };
 
+const char usr_msg_critical_err[] PROGMEM = {
+        "Critical error, system halted here."
+};
+
+const char usr_msg_input_received[] PROGMEM = {
+        "Input received."
+};
+
 //!< ----- Prompts for read & write bytes -----
 const char usr_msg_addr_prompt[] PROGMEM = {
-        "Provide starting address\n(use 6-char hex ascii from range 000000 - 00FFFF, i.e. 00ABCD): 0x"
+        "Provide starting address\n(use 8-char hex ascii from range 00000000 - 0000FFFF, i.e. 0000ABCD): 0x"
 };
-const char usr_msg_bytes_prompt[] PROGMEM = {
-        "Provide number of bytes: "
+const char usr_msg_no_bytes_to_read_prompt[] PROGMEM = {
+        "Provide number of bytes to be read: "
+};
+const char usr_msg_no_bytes_to_write_prompt[] PROGMEM = {
+        "Provide number of bytes to be written: "
 };
 // --------------------------------------------
 
