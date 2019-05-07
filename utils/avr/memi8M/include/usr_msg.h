@@ -53,15 +53,38 @@ const char usr_msg_input_received[] PROGMEM = {
         "Input received."
 };
 
+const char usr_msg_invalid_input_not_hex[] PROGMEM = {
+        "Invalid input: not a hex."
+};
+
+const char usr_msg_processing[] PROGMEM = {
+        "Processing..."
+};
+
 //!< ----- Prompts for read & write bytes -----
 const char usr_msg_addr_prompt[] PROGMEM = {
-        "Provide starting address\n(use 8-char hex ascii from range 00000000 - 0000FFFF, i.e. 0000ABCD): 0x"
+        "Provide starting address\n(use 8-char hex ascii from range 00000000 - 000FFFFF, i.e. 0000ABCD):\n0x"
 };
 const char usr_msg_no_bytes_to_read_prompt[] PROGMEM = {
-        "Provide number of bytes to be read: "
+        "Provide number of bytes to be read\n(use 8-char hex ascii from range 00000001 - 00100000, i.e. 0000ABCD):\n0x"
 };
 const char usr_msg_no_bytes_to_write_prompt[] PROGMEM = {
         "Provide number of bytes to be written: "
+};
+const char usr_msg_given_addr_is[] PROGMEM = {
+        "Given address is: "
+};
+const char usr_msg_given_no_bytes_is[] PROGMEM = {
+        "Given number of bytes: "
+};
+const char usr_msg_addr_out_of_range_err[] PROGMEM = {
+        "Error, given address out of range."
+};
+const char usr_msg_bts_out_of_range_err[] PROGMEM = {
+        "Error, given bytes out of range."
+};
+const char usr_msg_addr_vs_bts_err[] PROGMEM = {
+        "Error, given addr + bytes out of range."
 };
 // --------------------------------------------
 

@@ -20,7 +20,7 @@ char* rcvmsg_end = rcvbuff;
 comm_status_t CommInit(
         uint32_t baud_rate,
         uint32_t f_cpu,
-        const char* init_msg,
+        unsigned const char* init_msg,
         uint8_t init_msg_size)
 {
     comm_status_t status = COMM_SUCCESS;
@@ -61,7 +61,7 @@ comm_status_t CommInit(
 
 
 comm_status_t CommSendMsg(
-        const char* msg,
+        unsigned const char* msg,
         uint8_t msg_size)
 {
     comm_status_t status = COMM_SUCCESS;
