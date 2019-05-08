@@ -150,6 +150,23 @@ comm_status_t CommSendMsgsArrFromFlash(
     return status;
 }
 
+comm_status_t CommSendBytes(
+        const uint8_t* data_arr,
+        uint32_t data_size)
+{
+    if((data_arr == NULL) || data_size == 0)
+        return COMM_FAILED;
+
+    const uint8_t* dt = data_arr;
+    for(uint32_t i = 0; i < data_size; i++)
+    {
+        UsartTransmit(*dt);
+        dt++;
+    }
+
+    return COMM_SUCCESS;
+}
+
 comm_status_t CommSendByteAsHexAscii(uint8_t data)
 {
     comm_status_t status = COMM_SUCCESS;

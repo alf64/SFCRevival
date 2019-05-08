@@ -29,63 +29,94 @@
 #define USR_MSG_MAIN_AVAILABLE_USR_MSGS 9
 #define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
 
-const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM = {
-        {"\nWelcome to memi8M!"},
-        {"Please choose an option:"},
-        {"1. Read bytes."},
-        {"2. Write bytes."},
-        {"3. Read all memory."},
-        {"4. Write all memory."},
-        {"5. Debug scenario 1."},
-        {"6. Debug scenario 2."},
-        {"Select [1 - 6] (ascii format): "}
-};
+extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
-const char usr_msg_unsupported_sel[] PROGMEM = {
-        "Unsupported selection."
-};
+extern const char usr_msg_unsupported_sel[] PROGMEM;
 
-const char usr_msg_critical_err[] PROGMEM = {
-        "Critical error, system halted here."
-};
+extern const char usr_msg_critical_err[] PROGMEM;
 
-const char usr_msg_input_received[] PROGMEM = {
-        "Input received."
-};
+extern const char usr_msg_input_received[] PROGMEM;
 
-const char usr_msg_invalid_input_not_hex[] PROGMEM = {
-        "Invalid input: not a hex."
-};
+extern const char usr_msg_invalid_input_not_hex[] PROGMEM;
 
-const char usr_msg_processing[] PROGMEM = {
-        "Processing..."
-};
+extern const char usr_msg_processing[] PROGMEM;
+
+extern const char usr_msg_proceed_prompt[] PROGMEM;
 
 //!< ----- Prompts for read & write bytes -----
-const char usr_msg_addr_prompt[] PROGMEM = {
-        "Provide starting address\n(use 8-char hex ascii from range 00000000 - 000FFFFF, i.e. 0000ABCD):\n0x"
-};
-const char usr_msg_no_bytes_to_read_prompt[] PROGMEM = {
-        "Provide number of bytes to be read\n(use 8-char hex ascii from range 00000001 - 00100000, i.e. 0000ABCD):\n0x"
-};
-const char usr_msg_no_bytes_to_write_prompt[] PROGMEM = {
-        "Provide number of bytes to be written: "
-};
-const char usr_msg_given_addr_is[] PROGMEM = {
-        "Given address is: "
-};
-const char usr_msg_given_no_bytes_is[] PROGMEM = {
-        "Given number of bytes: "
-};
-const char usr_msg_addr_out_of_range_err[] PROGMEM = {
-        "Error, given address out of range."
-};
-const char usr_msg_bts_out_of_range_err[] PROGMEM = {
-        "Error, given bytes out of range."
-};
-const char usr_msg_addr_vs_bts_err[] PROGMEM = {
-        "Error, given addr + bytes out of range."
-};
-// --------------------------------------------
+extern const char usr_msg_addr_prompt[] PROGMEM;
+extern const char usr_msg_addr_fmt_advice[] PROGMEM;
+extern const char usr_msg_no_bytes_prompt[] PROGMEM;
+extern const char usr_msg_no_bytes_fmt_advice[] PROGMEM;
+extern const char usr_msg_given_addr_is[] PROGMEM;
+extern const char usr_msg_given_no_bytes_is[] PROGMEM;
+extern const char usr_msg_addr_out_of_range_err[] PROGMEM;
+extern const char usr_msg_bts_out_of_range_err[] PROGMEM;
+extern const char usr_msg_addr_vs_bts_err[] PROGMEM;
+extern const char usr_msg_output_format_prompt[] PROGMEM;
+extern const char usr_msg_output_format_invalid_err[] PROGMEM;
+extern const char usr_msg_given_output_format_is[] PROGMEM;
+extern const char usr_msg_given_output_format_ascii[] PROGMEM;
+extern const char usr_msg_given_output_format_bytes[] PROGMEM;
+
+//!< Output format
+typedef enum
+{
+    USR_OUT_FMT_BYTES = '0',
+    USR_OUT_FMT_ASCII = '1'
+}usr_out_fmt;
+
+typedef enum
+{
+    USR_MSG_SUCCESS = 0,
+    USR_MSG_FAILED = 1,
+    USR_MSG_INVALID_INPUT = 2
+}usr_msg_status_t;
+
+/*
+ * @brief Interactively (using comm) asks user for an address.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param addr A pointer where the result (obtained address) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the address from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (addr is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForAddr(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* addr);
+
+/*
+ * @brief Interactively (using comm) asks user for number of bytes.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param bts A pointer where the result (obtained number of bytes) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the number of bytes from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (bts is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForNoOfBts(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* bts);
 
 #endif /* INCLUDE_USR_MSG_H_ */

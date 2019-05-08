@@ -44,7 +44,7 @@ int main(void)
                 USR_MSG_MAIN_AVAILABLE_USR_MSGS,
                 USR_MSG_MAIN_MAX_CHARS_PER_MSG);
         if(c_stat != COMM_SUCCESS)
-            while(1){}; // halt
+            while(1){}; // halt forever
 
         // get user msg
         CommCleanMsgBuffer();
@@ -59,53 +59,46 @@ int main(void)
             case '1': // read-bytes option
             {
                 // ----- get addr from usr -----
-                CommSendMsgFromFlash(
-                        usr_msg_addr_prompt,
-                        sizeof(usr_msg_addr_prompt-1));
-                CommCleanMsgBuffer();
-                while(CommGetMsg(8, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
-                CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
-
-                uint32_t addr;
-                ascii_status = AsciiToU32(usr_input, &addr);
-                if(ascii_status == ASCII_INVALID_RANGE)
+                uint32_t addr = 0;
+                usr_msg_status_t usrmsg_status =
+                        UsrMsgAskForAddr(usr_input, sizeof(usr_input), &addr);
+                if(usrmsg_status == USR_MSG_FAILED)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_invalid_input_not_hex,
-                            sizeof(usr_msg_invalid_input_not_hex-1));
-                    break;
+                    while(1){}; // critical error, stuck forever
                 }
-                else if(ascii_status == ASCII_FAILED)
+                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_critical_err,
-                            sizeof(usr_msg_critical_err-1));
-                    while(1){}; // stuck forever
+                    break; // break this switch case
                 }
 
                 // ----- get no of bytes from usr -----
+                uint32_t bts;
+                usrmsg_status =
+                        UsrMsgAskForNoOfBts(usr_input, sizeof(usr_input), &bts);
+                if(usrmsg_status == USR_MSG_FAILED)
+                {
+                    while(1){}; // critical error, stuck forever
+                }
+                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                {
+                    break; // break this switch case
+                }
+
+                // ----- get output format from usr -----
                 CommSendMsgFromFlash(
-                        usr_msg_no_bytes_to_read_prompt,
-                        sizeof(usr_msg_no_bytes_to_read_prompt-1));
+                        usr_msg_output_format_prompt,
+                        sizeof(usr_msg_output_format_prompt-1));
                 CommCleanMsgBuffer();
-                while(CommGetMsg(8, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
+                while(CommGetMsg(1, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
                 CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
 
-                uint32_t bts;
-                ascii_status = AsciiToU32(usr_input, &bts);
-                if(ascii_status == ASCII_INVALID_RANGE)
+                usr_out_fmt outfmt = usr_input[0];
+                if((outfmt != USR_OUT_FMT_BYTES) && (outfmt != USR_OUT_FMT_ASCII))
                 {
                     CommSendMsgFromFlash(
-                            usr_msg_invalid_input_not_hex,
-                            sizeof(usr_msg_invalid_input_not_hex-1));
+                            usr_msg_output_format_invalid_err,
+                            sizeof(usr_msg_output_format_invalid_err-1));
                     break;
-                }
-                else if(ascii_status == ASCII_FAILED)
-                {
-                    CommSendMsgFromFlash(
-                            usr_msg_critical_err,
-                            sizeof(usr_msg_critical_err-1));
-                    while(1){}; // stuck forever
                 }
 
                 // ----- convert addr to ascii and display it to usr -----
@@ -149,6 +142,23 @@ int main(void)
                         sys_output,
                         8);
 
+                // ----- display output format to usr
+                CommSendMsgFromFlash(
+                        usr_msg_given_output_format_is,
+                        sizeof(usr_msg_given_output_format_is-1));
+                if(outfmt == USR_OUT_FMT_ASCII)
+                {
+                    CommSendMsgFromFlash(
+                            usr_msg_given_output_format_ascii,
+                            sizeof(usr_msg_given_output_format_ascii-1));
+                }
+                else
+                {
+                    CommSendMsgFromFlash(
+                            usr_msg_given_output_format_bytes,
+                            sizeof(usr_msg_given_output_format_bytes-1));
+                }
+
                 // ----- check the sanity of the addr and bytes and addr vs bytes -----
                 if(addr > BOARD_MAX_ADDRESS)
                 {
@@ -172,7 +182,49 @@ int main(void)
                     break;
                 }
 
-                // code for read bytes here
+                // ----- ask usr if he is sure to proceed with its choices -----
+                CommSendMsgFromFlash(
+                        usr_msg_proceed_prompt,
+                        sizeof(usr_msg_proceed_prompt-1));
+                CommCleanMsgBuffer();
+                while(CommGetMsg(1, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
+                CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+                if((usr_input[0] != 'y') && (usr_input[0] != 'n')
+                        && (usr_input[0] != 'Y') && (usr_input[0] != 'N'))
+                {
+                    CommSendMsgFromFlash(
+                            usr_msg_unsupported_sel,
+                            sizeof(usr_msg_unsupported_sel-1));
+                    break;
+                }
+                else if((usr_input[0] == 'n') || (usr_input[0] == 'N'))
+                {
+                    break; // usr said no
+                }
+
+                uint8_t readbt = 0;
+                for(uint32_t i = 0; i < bts; i++)
+                {
+                    /*
+                     * code for read byte here
+                     * up to this point you shall have the following vars set:
+                     * addr - the address to be read
+                     * bts - the number of bytes to be read
+                     * outfmt - output format to use when giving read bytes to user via comm
+                     */
+                    // readbt = ReadByte(addr+i)
+
+                    if(outfmt == USR_OUT_FMT_ASCII)
+                    {
+                        CommSendByteAsHexAscii(readbt);
+                    }
+                    else
+                    {
+                        CommSendBytes(&readbt, 1);
+                    }
+                }
+
                 break;
             }
             case '2':

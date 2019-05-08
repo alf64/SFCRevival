@@ -107,6 +107,21 @@ comm_status_t CommSendMsgsArrFromFlash(
         uint8_t msgs_max_chrs);
 
 /*
+ * @brief Sends given data as bytes via uart interface.
+ *
+ * @param data_arr Pointer to data.
+ * @param data_size A size (in bytes) of the given data_arr.
+ *
+ * @returns comm_status_t
+ * @retval COMM_FAILED Means the function failed (probably bad arguments were given).
+ * @retval COMM_SUCCESS Means the function succeeded.
+ *
+ */
+comm_status_t CommSendBytes(
+        const uint8_t* data_arr,
+        uint32_t data_size);
+
+/*
  * @brief
  * Sends a byte of data as hex (readable as ASCII in terminal).
  *
