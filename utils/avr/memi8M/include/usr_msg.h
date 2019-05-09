@@ -39,8 +39,6 @@ extern const char usr_msg_input_received[] PROGMEM;
 
 extern const char usr_msg_invalid_input_not_hex[] PROGMEM;
 
-extern const char usr_msg_processing[] PROGMEM;
-
 extern const char usr_msg_proceed_prompt[] PROGMEM;
 
 //!< ----- Prompts for read & write bytes -----
@@ -118,5 +116,107 @@ usr_msg_status_t UsrMsgAskForNoOfBts(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         uint32_t* bts);
+
+/*
+ * @brief Interactively (using comm) asks user for display output format (ascii vs raw bytes).
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 1.
+ * @param bts A pointer where the result (obtained output format) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the number of bytes from user.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (output format is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForOutFmt(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        usr_out_fmt* fmt);
+
+/*
+ * @brief Displays given addr to user via comm.
+ *
+ * @details
+ * This function takes given addr, converts it internally to hex ascii and then
+ * sends it via comm to display it to user.
+ *
+ * @param addr An address to be displayed.
+ * @param workbuff A pointer to a work buffer which is needed by this function for:
+ * - u32 to hex ascii conversion purposes
+ * - displaying the message via comm
+ * @param workbuff_size A size (in bytes) of the given workbuff.
+ * This shall be no less than 9.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the addr.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispAddrAsAscii(
+        uint32_t addr,
+        unsigned char* workbuff,
+        uint8_t workbuff_size);
+
+/*
+ * @brief Displays given bts ("number of bytes") to user via comm.
+ *
+ * @details
+ * This function takes given bts, converts it internally to hex ascii and then
+ * sends it via comm to display it to user.
+ *
+ * @param bts "number of bytes" to be displayed.
+ * @param workbuff A pointer to a work buffer which is needed by this function for:
+ * - u32 to hex ascii conversion purposes
+ * - displaying the message via comm
+ * @param workbuff_size A size (in bytes) of the given workbuff.
+ * This shall be no less than 9.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the bts.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispNoOfBtsAsAscii(
+        uint32_t bts,
+        unsigned char* workbuff,
+        uint8_t workbuff_size);
+
+/*
+ * @brief Displays given fmt ("output format") to user via comm.
+ *
+ * @details
+ * This function takes given fmt, interprets it and
+ * sends appropriate message via comm to display it to user.
+ *
+ * @param fmt "output format" to be displayed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the fmt.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispOutFmtAsAscii(usr_out_fmt fmt);
+
+/*
+ * @brief Checks the sanity of the addr and bts.
+ *
+ * @details This function takes addr and bts ("number of bytes") and checks if
+ * their values are sane. If there is a problem with them, sends appropriate message to
+ * user informing him about it.
+ *
+ * @param addr Address to be checked.
+ * @param bts "Number of bytes" to be checked.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the given addr and bts are sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given addr or bts is (are) not sane.
+ */
+usr_msg_status_t UsrMsgAddrBtsCheck(
+        uint32_t addr,
+        uint32_t bts);
 
 #endif /* INCLUDE_USR_MSG_H_ */

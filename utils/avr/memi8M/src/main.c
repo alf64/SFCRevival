@@ -11,7 +11,7 @@
 #include "usr_msg.h"
 #include "Comm/comm.h"
 #include "Ascii/ascii.h"
-#include <boards/memi8M_pcb.h>
+#include "boards/memi8M_pcb.h"
 
 //!< Maximum user input (in bytes) from comm
 #define MAX_USR_INPUT 8
@@ -24,8 +24,6 @@ int main(void)
 {
     // turn ON interrupts
     sei();
-
-    ascii_status_t ascii_status = ASCII_SUCCESS;
 
     // init communication (via UART) mechanism
     comm_status_t c_stat = CommInit(
@@ -72,7 +70,7 @@ int main(void)
                 }
 
                 // ----- get no of bytes from usr -----
-                uint32_t bts;
+                uint32_t bts = 0;
                 usrmsg_status =
                         UsrMsgAskForNoOfBts(usr_input, sizeof(usr_input), &bts);
                 if(usrmsg_status == USR_MSG_FAILED)
@@ -85,101 +83,46 @@ int main(void)
                 }
 
                 // ----- get output format from usr -----
-                CommSendMsgFromFlash(
-                        usr_msg_output_format_prompt,
-                        sizeof(usr_msg_output_format_prompt-1));
-                CommCleanMsgBuffer();
-                while(CommGetMsg(1, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
-                CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
-
-                usr_out_fmt outfmt = usr_input[0];
-                if((outfmt != USR_OUT_FMT_BYTES) && (outfmt != USR_OUT_FMT_ASCII))
+                usr_out_fmt outfmt = USR_OUT_FMT_BYTES;
+                usrmsg_status =
+                        UsrMsgAskForOutFmt(usr_input, sizeof(usr_input), &outfmt);
+                if(usrmsg_status == USR_MSG_FAILED)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_output_format_invalid_err,
-                            sizeof(usr_msg_output_format_invalid_err-1));
-                    break;
+                    while(1){}; // critical error, stuck forever
+                }
+                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                {
+                    break; // break this switch case
                 }
 
                 // ----- convert addr to ascii and display it to usr -----
-                CommSendMsgFromFlash(
-                        usr_msg_processing,
-                        sizeof(usr_msg_processing-1));
-                ascii_status = U32ToAscii(
-                        addr,
-                        sys_output,
-                        sizeof(sys_output));
-                if(ascii_status != ASCII_SUCCESS)
+                usrmsg_status =
+                        UsrMsgDispAddrAsAscii(addr, sys_output, sizeof(sys_output));
+                if(usrmsg_status == USR_MSG_FAILED)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_critical_err,
-                            sizeof(usr_msg_critical_err-1));
-                    while(1){}; // stuck forever
+                    while(1){}; // critical error, stuck forever
                 }
-                CommSendMsgFromFlash(
-                        usr_msg_given_addr_is,
-                        sizeof(usr_msg_given_addr_is-1));
-                CommSendMsg(
-                        sys_output,
-                        8);
 
                 // ----- convert bts to ascii and display it to usr -----
-                ascii_status = U32ToAscii(
-                        bts,
-                        sys_output,
-                        sizeof(sys_output));
-                if(ascii_status != ASCII_SUCCESS)
+                usrmsg_status =
+                        UsrMsgDispNoOfBtsAsAscii(bts, sys_output, sizeof(sys_output));
+                if(usrmsg_status == USR_MSG_FAILED)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_critical_err,
-                            sizeof(usr_msg_critical_err-1));
-                    while(1){}; // stuck forever
+                    while(1){}; // critical error, stuck forever
                 }
-                CommSendMsgFromFlash(
-                        usr_msg_given_no_bytes_is,
-                        sizeof(usr_msg_given_no_bytes_is-1));
-                CommSendMsg(
-                        sys_output,
-                        8);
 
-                // ----- display output format to usr
-                CommSendMsgFromFlash(
-                        usr_msg_given_output_format_is,
-                        sizeof(usr_msg_given_output_format_is-1));
-                if(outfmt == USR_OUT_FMT_ASCII)
+                // ----- display output format to usr -----
+                usrmsg_status = UsrMsgDispOutFmtAsAscii(outfmt);
+                if(usrmsg_status == USR_MSG_FAILED)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_given_output_format_ascii,
-                            sizeof(usr_msg_given_output_format_ascii-1));
-                }
-                else
-                {
-                    CommSendMsgFromFlash(
-                            usr_msg_given_output_format_bytes,
-                            sizeof(usr_msg_given_output_format_bytes-1));
+                    while(1){}; // critical error, stuck forever
                 }
 
                 // ----- check the sanity of the addr and bytes and addr vs bytes -----
-                if(addr > BOARD_MAX_ADDRESS)
+                usrmsg_status = UsrMsgAddrBtsCheck(addr, bts);
+                if(usrmsg_status == USR_MSG_INVALID_INPUT)
                 {
-                    CommSendMsgFromFlash(
-                            usr_msg_addr_out_of_range_err,
-                            sizeof(usr_msg_addr_out_of_range_err-1));
-                    break;
-                }
-                else if((bts > BOARD_SPACE_CAPACITY) || (bts == 0))
-                {
-                    CommSendMsgFromFlash(
-                            usr_msg_bts_out_of_range_err,
-                            sizeof(usr_msg_bts_out_of_range_err-1));
-                    break;
-                }
-                else if(((addr + bts)-1) > BOARD_MAX_ADDRESS)
-                {
-                    CommSendMsgFromFlash(
-                            usr_msg_addr_vs_bts_err,
-                            sizeof(usr_msg_addr_vs_bts_err-1));
-                    break;
+                    break; // break this switch case
                 }
 
                 // ----- ask usr if he is sure to proceed with its choices -----
