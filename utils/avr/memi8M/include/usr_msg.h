@@ -41,6 +41,14 @@ extern const char usr_msg_invalid_input_not_hex[] PROGMEM;
 
 extern const char usr_msg_proceed_prompt[] PROGMEM;
 
+extern const char usr_msg_retry_prompt[] PROGMEM;
+
+extern const char usr_msg_job_done[] PROGMEM;
+
+extern const char usr_msg_prog_to_restart[] PROGMEM;
+
+extern const char usr_msg_system_halted[] PROGMEM;
+
 //!< ----- Prompts for read & write bytes -----
 extern const char usr_msg_addr_prompt[] PROGMEM;
 extern const char usr_msg_addr_fmt_advice[] PROGMEM;
@@ -139,6 +147,58 @@ usr_msg_status_t UsrMsgAskForOutFmt(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         usr_out_fmt* fmt);
+
+/*
+ * @brief Interactively (using comm) asks user if he wants to proceed further or no.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 1.
+ * @param proceed A pointer where the result (obtained user decision for proceeding) shall be placed.
+ * The result (proceed) may have the following values:
+ * 0 - means FALSE
+ * 1 - means TRUE
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the proceed decision from user.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (proceed is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForProceed(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint8_t* proceed);
+
+/*
+ * @brief Interactively (using comm) asks user if he wants to retry.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 1.
+ * @param proceed A pointer where the result (obtained user decision for retrying) shall be placed.
+ * The result (proceed) may have the following values:
+ * 0 - means FALSE
+ * 1 - means TRUE
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the retry decision from user.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (retry is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForRetry(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint8_t* retry);
 
 /*
  * @brief Displays given addr to user via comm.

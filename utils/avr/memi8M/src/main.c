@@ -8,9 +8,10 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "usr_msg.h"
+#include <avr/pgmspace.h>
 #include "Comm/comm.h"
-#include "Ascii/ascii.h"
+#include "usr_msg.h"
+#include "opts.h"
 #include "boards/memi8M_pcb.h"
 
 //!< Maximum user input (in bytes) from comm
@@ -19,6 +20,7 @@
 #define MAX_SYS_OUTPUT 9
 unsigned char usr_input[MAX_USR_INPUT];
 unsigned char sys_output[MAX_SYS_OUTPUT];
+
 
 int main(void)
 {
@@ -56,117 +58,33 @@ int main(void)
         {
             case '1': // read-bytes option
             {
-                // ----- get addr from usr -----
-                uint32_t addr = 0;
-                usr_msg_status_t usrmsg_status =
-                        UsrMsgAskForAddr(usr_input, sizeof(usr_input), &addr);
-                if(usrmsg_status == USR_MSG_FAILED)
+                uint8_t retry = 0;
+                do
                 {
-                    while(1){}; // critical error, stuck forever
-                }
-                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-                {
-                    break; // break this switch case
-                }
-
-                // ----- get no of bytes from usr -----
-                uint32_t bts = 0;
-                usrmsg_status =
-                        UsrMsgAskForNoOfBts(usr_input, sizeof(usr_input), &bts);
-                if(usrmsg_status == USR_MSG_FAILED)
-                {
-                    while(1){}; // critical error, stuck forever
-                }
-                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-                {
-                    break; // break this switch case
-                }
-
-                // ----- get output format from usr -----
-                usr_out_fmt outfmt = USR_OUT_FMT_BYTES;
-                usrmsg_status =
-                        UsrMsgAskForOutFmt(usr_input, sizeof(usr_input), &outfmt);
-                if(usrmsg_status == USR_MSG_FAILED)
-                {
-                    while(1){}; // critical error, stuck forever
-                }
-                else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-                {
-                    break; // break this switch case
-                }
-
-                // ----- convert addr to ascii and display it to usr -----
-                usrmsg_status =
-                        UsrMsgDispAddrAsAscii(addr, sys_output, sizeof(sys_output));
-                if(usrmsg_status == USR_MSG_FAILED)
-                {
-                    while(1){}; // critical error, stuck forever
-                }
-
-                // ----- convert bts to ascii and display it to usr -----
-                usrmsg_status =
-                        UsrMsgDispNoOfBtsAsAscii(bts, sys_output, sizeof(sys_output));
-                if(usrmsg_status == USR_MSG_FAILED)
-                {
-                    while(1){}; // critical error, stuck forever
-                }
-
-                // ----- display output format to usr -----
-                usrmsg_status = UsrMsgDispOutFmtAsAscii(outfmt);
-                if(usrmsg_status == USR_MSG_FAILED)
-                {
-                    while(1){}; // critical error, stuck forever
-                }
-
-                // ----- check the sanity of the addr and bytes and addr vs bytes -----
-                usrmsg_status = UsrMsgAddrBtsCheck(addr, bts);
-                if(usrmsg_status == USR_MSG_INVALID_INPUT)
-                {
-                    break; // break this switch case
-                }
-
-                // ----- ask usr if he is sure to proceed with its choices -----
-                CommSendMsgFromFlash(
-                        usr_msg_proceed_prompt,
-                        sizeof(usr_msg_proceed_prompt-1));
-                CommCleanMsgBuffer();
-                while(CommGetMsg(1, usr_input, sizeof(usr_input)) != COMM_SUCCESS);
-                CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
-
-                if((usr_input[0] != 'y') && (usr_input[0] != 'n')
-                        && (usr_input[0] != 'Y') && (usr_input[0] != 'N'))
-                {
-                    CommSendMsgFromFlash(
-                            usr_msg_unsupported_sel,
-                            sizeof(usr_msg_unsupported_sel-1));
-                    break;
-                }
-                else if((usr_input[0] == 'n') || (usr_input[0] == 'N'))
-                {
-                    break; // usr said no
-                }
-
-                uint8_t readbt = 0;
-                for(uint32_t i = 0; i < bts; i++)
-                {
-                    /*
-                     * code for read byte here
-                     * up to this point you shall have the following vars set:
-                     * addr - the address to be read
-                     * bts - the number of bytes to be read
-                     * outfmt - output format to use when giving read bytes to user via comm
-                     */
-                    // readbt = ReadByte(addr+i)
-
-                    if(outfmt == USR_OUT_FMT_ASCII)
+                    opts_status_t opts_status =
+                            OptsReadBytes(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
                     {
-                        CommSendByteAsHexAscii(readbt);
+                        while(1){}; // halt forever
                     }
-                    else
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
                     {
-                        CommSendBytes(&readbt, 1);
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
                     }
-                }
+                } while(retry);
 
                 break;
             }
@@ -192,9 +110,33 @@ int main(void)
             }
         }
 
-        // TODO: ask user to continue or halt forever
-        while(1) {}; // halt
-    }
+        CommSendMsgFromFlash(
+                usr_msg_prog_to_restart,
+                sizeof(usr_msg_prog_to_restart-1));
+        uint8_t proceed = 0;
+        usr_msg_status_t usrmsg_status =
+                UsrMsgAskForProceed(usr_input, sizeof(usr_input), &proceed);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            while(1){}; // critical error, stuck forever
+        }
+        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        {
+            // do nothing, restarting the program anyway
+        }
+        else
+        {
+            if(!proceed)
+            {
+                CommSendMsgFromFlash(
+                        usr_msg_system_halted,
+                        sizeof(usr_msg_system_halted-1));
+                while(1){};; // user said no, halt forever
+            }
+            // do nothing, restarting the program main loop
+        }
+
+    } // main for(;;)
 
     for(;;);
 

@@ -45,6 +45,22 @@ const char usr_msg_proceed_prompt[] PROGMEM = {
         "Proceed ? ('y' / 'n'): "
 };
 
+const char usr_msg_retry_prompt[] PROGMEM = {
+        "Retry ? ('y' / 'n'): "
+};
+
+const char usr_msg_job_done[] PROGMEM = {
+        "Job done. "
+};
+
+const char usr_msg_prog_to_restart[] PROGMEM = {
+        "Restarting program... "
+};
+
+const char usr_msg_system_halted[] PROGMEM = {
+        "System halted. "
+};
+
 //!< ----- Prompts for read & write bytes -----
 const char usr_msg_addr_prompt[] PROGMEM = {
         "Provide starting address "
@@ -193,6 +209,76 @@ usr_msg_status_t UsrMsgAskForOutFmt(
     else
     {
         *fmt = usr_input_buff[0];
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForProceed(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint8_t* proceed)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 1) || (proceed == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_proceed_prompt,
+            sizeof(usr_msg_proceed_prompt-1));
+    CommCleanMsgBuffer();
+    while(CommGetMsg(1, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+    if((usr_input_buff[0] != 'y') && (usr_input_buff[0] != 'n')
+            && (usr_input_buff[0] != 'Y') && (usr_input_buff[0] != 'N'))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_unsupported_sel,
+                sizeof(usr_msg_unsupported_sel-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if((usr_input_buff[0] == 'n') || (usr_input_buff[0] == 'N'))
+    {
+        *proceed = 0;
+        return USR_MSG_SUCCESS;
+    }
+    else // (usr_input[0] == 'y') || (usr_input[0] == 'Y')
+    {
+        *proceed = 1;
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForRetry(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint8_t* retry)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 1) || (retry == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_retry_prompt,
+            sizeof(usr_msg_retry_prompt-1));
+    CommCleanMsgBuffer();
+    while(CommGetMsg(1, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+    if((usr_input_buff[0] != 'y') && (usr_input_buff[0] != 'n')
+            && (usr_input_buff[0] != 'Y') && (usr_input_buff[0] != 'N'))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_unsupported_sel,
+                sizeof(usr_msg_unsupported_sel-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if((usr_input_buff[0] == 'n') || (usr_input_buff[0] == 'N'))
+    {
+        *retry = 0;
+        return USR_MSG_SUCCESS;
+    }
+    else // (usr_input[0] == 'y') || (usr_input[0] == 'Y')
+    {
+        *retry = 1;
         return USR_MSG_SUCCESS;
     }
 }
