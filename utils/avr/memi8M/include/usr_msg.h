@@ -14,7 +14,7 @@
  */
 #include <avr/pgmspace.h>
 
-//!< messages
+//!< main menu messages
 #define USR_MSG_MAIN_WELCOME 0
 #define USR_MSG_MAIN_CHOOSE_OPTION_PROMPT 1
 #define USR_MSG_MAIN_READ_BYTES_OPTION 2
@@ -28,6 +28,14 @@
 //!< maximums
 #define USR_MSG_MAIN_AVAILABLE_USR_MSGS 9
 #define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
+
+//!< main menu choices
+#define USR_MSG_READ_BYTES_CHOICE '1'
+#define USR_MSG_WRITE_BYTES_CHOICE '2'
+#define USR_MSG_READ_ALL_CHOICE '3'
+#define USR_MSG_WRITE_ALL_CHOICE '4'
+#define USR_MSG_DBG_SC_01_CHOICE '5'
+#define USR_MSG_DBG_SC_02_CHOICE '6'
 
 extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
@@ -59,18 +67,20 @@ extern const char usr_msg_given_no_bytes_is[] PROGMEM;
 extern const char usr_msg_addr_out_of_range_err[] PROGMEM;
 extern const char usr_msg_bts_out_of_range_err[] PROGMEM;
 extern const char usr_msg_addr_vs_bts_err[] PROGMEM;
-extern const char usr_msg_output_format_prompt[] PROGMEM;
-extern const char usr_msg_output_format_invalid_err[] PROGMEM;
-extern const char usr_msg_given_output_format_is[] PROGMEM;
-extern const char usr_msg_given_output_format_ascii[] PROGMEM;
-extern const char usr_msg_given_output_format_bytes[] PROGMEM;
+extern const char usr_msg_data_format_prompt[] PROGMEM;
+extern const char usr_msg_data_format_invalid_err[] PROGMEM;
+extern const char usr_msg_given_data_format_is[] PROGMEM;
+extern const char usr_msg_data_format_ascii[] PROGMEM;
+extern const char usr_msg_data_format_bytes[] PROGMEM;
+extern const char usr_msg_data_ascii_prompt[] PROGMEM;
+extern const char usr_msg_data_raw_prompt[] PROGMEM;
 
 //!< Output format
 typedef enum
 {
-    USR_OUT_FMT_BYTES = '0',
-    USR_OUT_FMT_ASCII = '1'
-}usr_out_fmt;
+    USR_DATA_FMT_BYTES = '0',
+    USR_DATA_FMT_ASCII = '1'
+}usr_data_fmt;
 
 typedef enum
 {
@@ -126,7 +136,7 @@ usr_msg_status_t UsrMsgAskForNoOfBts(
         uint32_t* bts);
 
 /*
- * @brief Interactively (using comm) asks user for display output format (ascii vs raw bytes).
+ * @brief Interactively (using comm) asks user for data format (ascii vs raw bytes).
  *
  * @attention
  * This function relies on comm, so it is necessary to perform CommInit()
@@ -136,17 +146,17 @@ usr_msg_status_t UsrMsgAskForNoOfBts(
  * given via comm.
  * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
  * This parameter cannot be less than 1.
- * @param bts A pointer where the result (obtained output format) shall be placed.
+ * @param bts A pointer where the result (obtained data format) shall be placed.
  *
  * @returns usr_msg_status_t
- * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the number of bytes from user.
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain data format.
  * @retval USR_MSG_FAILED Means the critical error occurred.
- * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (output format is not obtained).
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (data format is not obtained).
  */
-usr_msg_status_t UsrMsgAskForOutFmt(
+usr_msg_status_t UsrMsgAskForDataFmt(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
-        usr_out_fmt* fmt);
+        usr_data_fmt* fmt);
 
 /*
  * @brief Interactively (using comm) asks user if he wants to proceed further or no.
@@ -185,8 +195,8 @@ usr_msg_status_t UsrMsgAskForProceed(
  * given via comm.
  * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
  * This parameter cannot be less than 1.
- * @param proceed A pointer where the result (obtained user decision for retrying) shall be placed.
- * The result (proceed) may have the following values:
+ * @param retry A pointer where the result (obtained user decision for retrying) shall be placed.
+ * The result (retry) may have the following values:
  * 0 - means FALSE
  * 1 - means TRUE
  *
@@ -199,6 +209,31 @@ usr_msg_status_t UsrMsgAskForRetry(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         uint8_t* retry);
+
+/*
+ * @brief Interactively (using comm) asks user for the single byte of data.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 2.
+ * @param fmt A format which shall be used to obtain data from user.
+ * @param data A pointer where the result (obtained byte of data) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain data from user.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (data is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForSingleData(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        usr_data_fmt fmt,
+        uint8_t* data);
 
 /*
  * @brief Displays given addr to user via comm.
@@ -259,7 +294,7 @@ usr_msg_status_t UsrMsgDispNoOfBtsAsAscii(
  * @retval USR_MSG_SUCCESS Means the function succeeded to display the fmt.
  * @retval USR_MSG_FAILED Means the critical error occurred.
  */
-usr_msg_status_t UsrMsgDispOutFmtAsAscii(usr_out_fmt fmt);
+usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt);
 
 /*
  * @brief Checks the sanity of the addr and bts.

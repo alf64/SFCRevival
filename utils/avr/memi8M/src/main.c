@@ -21,7 +21,6 @@
 unsigned char usr_input[MAX_USR_INPUT];
 unsigned char sys_output[MAX_SYS_OUTPUT];
 
-
 int main(void)
 {
     // turn ON interrupts
@@ -56,7 +55,7 @@ int main(void)
 
         switch(usr_input[0])
         {
-            case '1': // read-bytes option
+            case USR_MSG_READ_BYTES_CHOICE:
             {
                 uint8_t retry = 0;
                 do
@@ -88,17 +87,44 @@ int main(void)
 
                 break;
             }
-            case '2':
+            case USR_MSG_WRITE_BYTES_CHOICE:
             {
-                // code for write bytes here
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsWriteBytes(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
+                    {
+                        while(1){}; // halt forever
+                    }
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                } while(retry);
+
                 break;
             }
-            case '3':
+            case USR_MSG_READ_ALL_CHOICE:
             {
                 // code for read all memory here
                 break;
             }
-            case '4':
+            case USR_MSG_WRITE_ALL_CHOICE:
             {
                 // code for write all memory here
                 break;
@@ -120,11 +146,7 @@ int main(void)
         {
             while(1){}; // critical error, stuck forever
         }
-        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-        {
-            // do nothing, restarting the program anyway
-        }
-        else
+        else // usrmsg_status == USR_MSG_INVALID_INPUT || usrmsg_status == USR_MSG_SUCCESS
         {
             if(!proceed)
             {

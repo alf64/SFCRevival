@@ -104,6 +104,28 @@ void bt_to_hex(
     return;
 }
 
+ascii_status_t AsciiToU8(
+        const unsigned char* input,
+        uint8_t* output)
+{
+    if(input == NULL || output == NULL)
+        return ASCII_FAILED;
+
+    ascii_status_t status;
+
+    if(is_hex(input, 2))
+    {
+        *output = hex_to_bt(input);
+        status = ASCII_SUCCESS;
+    }
+    else
+    {
+        status = ASCII_INVALID_RANGE;
+    }
+
+    return status;
+}
+
 ascii_status_t AsciiToU32(
         const unsigned char* input,
         uint32_t* output)

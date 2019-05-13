@@ -16,6 +16,28 @@ typedef enum _ascii_status_t
 }ascii_status_t;
 
 /*
+ * @brief Function converts char (ascii) to uint8_t.
+ *
+ * @details
+ * This function can be easily used to convert hex
+ * values to bytes.
+ *
+ * @attention
+ * This function assumes:
+ * - given ascii char is 2-bytes long
+ * - given ascii char values are from ranges: '0' - '9', 'A'-'F', 'a' - 'f'
+ * - big endian byte order (the very first byte is the most significant)
+ *
+ * @param input A pointer to ascii characters of size: 2 bytes
+ * @param output A pointer where the result of this function shall be stored.
+ *
+ * @returns ascii_status_t
+ */
+ascii_status_t AsciiToU8(
+        const unsigned char* input,
+        uint8_t* output);
+
+/*
  * @brief Function converts char (ascii) to uint32_t.
  *
  * @details

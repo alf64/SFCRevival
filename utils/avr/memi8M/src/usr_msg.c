@@ -89,20 +89,26 @@ const char usr_msg_bts_out_of_range_err[] PROGMEM = {
 const char usr_msg_addr_vs_bts_err[] PROGMEM = {
         "Error, given addr + bytes out of range."
 };
-const char usr_msg_output_format_prompt[] PROGMEM = {
-        "Choose output format ('1'=ASCII, '0'=bytes): "
+const char usr_msg_data_format_prompt[] PROGMEM = {
+        "Choose data format ('1'=ASCII, '0'=bytes): "
 };
-const char usr_msg_output_format_invalid_err[] PROGMEM = {
-        "Error, given output format invalid."
+const char usr_msg_data_format_invalid_err[] PROGMEM = {
+        "Error, given data format invalid."
 };
-const char usr_msg_given_output_format_is[] PROGMEM = {
-        "Given output format is: "
+const char usr_msg_given_data_format_is[] PROGMEM = {
+        "Given data format is: "
 };
-const char usr_msg_given_output_format_ascii[] PROGMEM = {
+const char usr_msg_data_format_ascii[] PROGMEM = {
         "ASCII"
 };
-const char usr_msg_given_output_format_bytes[] PROGMEM = {
+const char usr_msg_data_format_bytes[] PROGMEM = {
         "bytes"
+};
+const char usr_msg_data_ascii_prompt[] PROGMEM = {
+        "Provide data (use ascii, range: 00 - FF): "
+};
+const char usr_msg_data_raw_prompt[] PROGMEM = {
+        "Provide data (raw byte): "
 };
 // --------------------------------------------
 
@@ -184,26 +190,26 @@ usr_msg_status_t UsrMsgAskForNoOfBts(
     }
 }
 
-usr_msg_status_t UsrMsgAskForOutFmt(
+usr_msg_status_t UsrMsgAskForDataFmt(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
-        usr_out_fmt* fmt)
+        usr_data_fmt* fmt)
 {
     if((usr_input_buff == NULL) || (usr_input_buff_size < 1) || (fmt == NULL))
         return USR_MSG_FAILED;
 
     CommSendMsgFromFlash(
-            usr_msg_output_format_prompt,
-            sizeof(usr_msg_output_format_prompt-1));
+            usr_msg_data_format_prompt,
+            sizeof(usr_msg_data_format_prompt-1));
     CommCleanMsgBuffer();
     while(CommGetMsg(1, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
     CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
 
-    if((usr_input_buff[0] != USR_OUT_FMT_BYTES) && (usr_input_buff[0] != USR_OUT_FMT_ASCII))
+    if((usr_input_buff[0] != USR_DATA_FMT_BYTES) && (usr_input_buff[0] != USR_DATA_FMT_ASCII))
     {
         CommSendMsgFromFlash(
-                usr_msg_output_format_invalid_err,
-                sizeof(usr_msg_output_format_invalid_err-1));
+                usr_msg_data_format_invalid_err,
+                sizeof(usr_msg_data_format_invalid_err-1));
         return USR_MSG_INVALID_INPUT;
     }
     else
@@ -283,6 +289,65 @@ usr_msg_status_t UsrMsgAskForRetry(
     }
 }
 
+usr_msg_status_t UsrMsgAskForSingleData(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        usr_data_fmt fmt,
+        uint8_t* data)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 2) || (data == NULL))
+        return USR_MSG_FAILED;
+
+    uint8_t bts_needed = 0;
+    if(fmt == USR_DATA_FMT_ASCII)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_data_ascii_prompt,
+                sizeof(usr_msg_data_ascii_prompt-1));
+        bts_needed = 2;
+    }
+    else // USR_DATA_FMT_BYTES
+    {
+        CommSendMsgFromFlash(
+                usr_msg_data_raw_prompt,
+                sizeof(usr_msg_data_raw_prompt-1));
+        bts_needed = 1;
+    }
+
+    CommCleanMsgBuffer();
+    while(CommGetMsg(bts_needed, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+    if(fmt == USR_DATA_FMT_ASCII)
+    {
+        ascii_status_t ascii_status = AsciiToU8(usr_input_buff, data);
+        if(ascii_status == ASCII_INVALID_RANGE)
+        {
+            CommSendMsgFromFlash(
+                    usr_msg_invalid_input_not_hex,
+                    sizeof(usr_msg_invalid_input_not_hex-1));
+            return USR_MSG_INVALID_INPUT;
+        }
+        else if(ascii_status == ASCII_FAILED)
+        {
+            CommSendMsgFromFlash(
+                    usr_msg_critical_err,
+                    sizeof(usr_msg_critical_err-1));
+            return USR_MSG_FAILED;
+        }
+        else
+        {
+            // this must be success, do nothing
+        }
+    }
+    else // USR_DATA_FMT_BYTES
+    {
+        *data = usr_input_buff[0];
+    }
+
+    return USR_MSG_SUCCESS;
+}
+
 usr_msg_status_t UsrMsgDispAddrAsAscii(
         uint32_t addr,
         unsigned char* workbuff,
@@ -345,23 +410,23 @@ usr_msg_status_t UsrMsgDispNoOfBtsAsAscii(
     }
 }
 
-usr_msg_status_t UsrMsgDispOutFmtAsAscii(usr_out_fmt fmt)
+usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt)
 {
     CommSendMsgFromFlash(
-            usr_msg_given_output_format_is,
-            sizeof(usr_msg_given_output_format_is-1));
-    if(fmt == USR_OUT_FMT_ASCII)
+            usr_msg_given_data_format_is,
+            sizeof(usr_msg_given_data_format_is-1));
+    if(fmt == USR_DATA_FMT_ASCII)
     {
         CommSendMsgFromFlash(
-                usr_msg_given_output_format_ascii,
-                sizeof(usr_msg_given_output_format_ascii-1));
+                usr_msg_data_format_ascii,
+                sizeof(usr_msg_data_format_ascii-1));
         return USR_MSG_SUCCESS;
     }
-    else if(fmt == USR_OUT_FMT_BYTES)
+    else if(fmt == USR_DATA_FMT_BYTES)
     {
         CommSendMsgFromFlash(
-                usr_msg_given_output_format_bytes,
-                sizeof(usr_msg_given_output_format_bytes-1));
+                usr_msg_data_format_bytes,
+                sizeof(usr_msg_data_format_bytes-1));
         return USR_MSG_SUCCESS;
     }
     else
