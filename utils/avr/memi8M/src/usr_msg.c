@@ -20,9 +20,11 @@ const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_C
         {"2. Write bytes."},
         {"3. Read all memory."},
         {"4. Write all memory."},
-        {"5. Debug scenario 1."},
-        {"6. Debug scenario 2."},
-        {"Select [1 - 6] (ascii format): "}
+        {"5. Erase sector."},
+        {"6. Erase all memory."},
+        {"7. Debug scenario 1."},
+        {"8. Debug scenario 2."},
+        {"Select [1 - 8] (ascii format): "}
 };
 
 const char usr_msg_unsupported_sel[] PROGMEM = {
@@ -109,6 +111,31 @@ const char usr_msg_data_ascii_prompt[] PROGMEM = {
 };
 const char usr_msg_data_raw_prompt[] PROGMEM = {
         "Provide data (raw byte): "
+};
+// --------------------------------------------
+
+//!< ----- Infos for read & write all -----
+const char usr_msg_readall_info[] PROGMEM = {
+        "Attempting to read the whole memory...\n"
+        "Attention!\n"
+        "Upon proceeding:\n"
+        "*Read data will be provided as raw bytes.\n"
+        "*There won't be any messages send besides the data.\n"
+        "*Program will halt forever upon reading all the data.\n"
+};
+const char usr_msg_writeall_info[] PROGMEM = {
+        "Attempting to write the whole memory...\n"
+        "Attention!\n"
+        "Upon proceeding:\n"
+        "*Program expects user to provide all the data as raw bytes.\n"
+        "*Confirmation message will be send upon writing all the data.\n"
+        "*Program will continue upon writing all the data.\n"
+};
+const char usr_msg_memsize_is[] PROGMEM = {
+        "Total number of data (bytes): "
+};
+const char usr_msg_all_data_prompt[] PROGMEM = {
+        "Provide the data (raw bytes): "
 };
 // --------------------------------------------
 
@@ -469,3 +496,72 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
     }
 }
 
+usr_msg_status_t UsrMsgDispReadAllInfo(
+        uint32_t mem_size,
+        unsigned char* workbuff,
+        uint8_t workbuff_size)
+{
+    if((workbuff == NULL) || (workbuff_size < 9))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_readall_info,
+            sizeof(usr_msg_readall_info-1));
+
+    ascii_status_t ascii_status = U32ToAscii(
+            mem_size,
+            workbuff,
+            workbuff_size);
+    if(ascii_status != ASCII_SUCCESS)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                sizeof(usr_msg_critical_err-1));
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        CommSendMsgFromFlash(
+                usr_msg_memsize_is,
+                sizeof(usr_msg_memsize_is-1));
+        CommSendMsg(
+                workbuff,
+                8);
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgDispWriteAllInfo(
+        uint32_t mem_size,
+        unsigned char* workbuff,
+        uint8_t workbuff_size)
+{
+    if((workbuff == NULL) || (workbuff_size < 9))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_writeall_info,
+            sizeof(usr_msg_writeall_info-1));
+
+    ascii_status_t ascii_status = U32ToAscii(
+            mem_size,
+            workbuff,
+            workbuff_size);
+    if(ascii_status != ASCII_SUCCESS)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                sizeof(usr_msg_critical_err-1));
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        CommSendMsgFromFlash(
+                usr_msg_memsize_is,
+                sizeof(usr_msg_memsize_is-1));
+        CommSendMsg(
+                workbuff,
+                8);
+        return USR_MSG_SUCCESS;
+    }
+}

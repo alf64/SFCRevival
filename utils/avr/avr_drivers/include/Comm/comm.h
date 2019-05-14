@@ -65,6 +65,7 @@ comm_status_t CommInit(
  *
  * @attention
  * This function will only work properly if the CommInit() was performed before.
+ * This function appends new-line character at the end of the message.
  *
  * @returns comm_status_t.
  * @retval COMM_SUCCESS Means the function succeeded to init the communicator.

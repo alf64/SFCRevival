@@ -17,12 +17,14 @@ typedef enum
 }opts_status_t;
 
 /*
- * @brief This function implements read-bytes selection.
+ * @brief Implements read-bytes selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 8.
  * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
  * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
  *
  * @returns opts_status_t
  * @retval OPTS_SUCCESS Means the function successfully ended its execution.
@@ -36,12 +38,14 @@ opts_status_t OptsReadBytes(
         uint32_t out_buff_size);
 
 /*
- * @brief This function implements write-bytes selection.
+ * @brief Implements write-bytes selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 8.
  * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
  * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
  *
  * @returns opts_status_t
  * @retval OPTS_SUCCESS Means the function successfully ended its execution.
@@ -49,6 +53,46 @@ opts_status_t OptsReadBytes(
  * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
  */
 opts_status_t OptsWriteBytes(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size);
+
+/*
+ * @brief Implements read-all selection.
+ *
+ * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
+ * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 1.
+ * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
+ * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
+ *
+ * @returns opts_status_t
+ * @retval OPTS_SUCCESS If succeeded to read the whole memory.
+ * @retval OPTS_CRITICAL_ERR If failed to read the whole memory.
+ */
+opts_status_t OptsReadAll(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size);
+
+/*
+ * @brief Implements write-all selection.
+ *
+ * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
+ * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 1.
+ * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
+ * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
+ *
+ * @returns opts_status_t
+ * @retval OPTS_SUCCESS If succeeded to write the whole memory.
+ * @retval OPTS_CRITICAL_ERR If failed to write the whole memory.
+ */
+opts_status_t OptsWriteAll(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,

@@ -12,7 +12,6 @@
 #include "Comm/comm.h"
 #include "usr_msg.h"
 #include "opts.h"
-#include "boards/memi8M_pcb.h"
 
 //!< Maximum user input (in bytes) from comm
 #define MAX_USR_INPUT 8
@@ -121,12 +120,74 @@ int main(void)
             }
             case USR_MSG_READ_ALL_CHOICE:
             {
-                // code for read all memory here
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsReadAll(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_NEED_RETRY)
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                    else //((opts_status == OPTS_CRITICAL_ERR) || (opts_status == OPTS_SUCCESS))
+                    {
+                        while(1){}; // SUCCESS or ERROR, halt forever
+                    }
+                } while(retry);
+
                 break;
             }
             case USR_MSG_WRITE_ALL_CHOICE:
             {
-                // code for write all memory here
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsWriteAll(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
+                    {
+                        while(1){}; // halt forever
+                    }
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                } while(retry);
+
+                break;
+            }
+            case USR_MSG_ERASE_SECTOR_CHOICE:
+            {
+                break;
+            }
+            case USR_MSG_ERASE_ALL_CHOICE:
+            {
                 break;
             }
             default:

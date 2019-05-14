@@ -13,6 +13,7 @@
 #include "Comm/comm.h"
 #include "usr_msg.h"
 #include "opts.h"
+#include "boards/memi8M_pcb.h"
 
 
 /*
@@ -244,6 +245,127 @@ opts_status_t OptsWriteBytes(
 
         // display number (index) of byte being written
         // write byte to flash
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_job_done,
+            sizeof(usr_msg_job_done-1));
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsReadAll(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 1) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    usr_msg_status_t usrmsg_status =
+            UsrMsgDispReadAllInfo(
+                    BOARD_SPACE_CAPACITY,
+                    out_buff,
+                    out_buff_size);
+    if(usrmsg_status != USR_MSG_SUCCESS)
+        return OPTS_CRITICAL_ERR;
+
+    // ----- ask usr if he is sure to proceed -----
+    uint8_t proceed = 0;
+    usrmsg_status =
+            UsrMsgAskForProceed(inp_buff, inp_buff_size, &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    uint8_t readbt = 0;
+    for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
+    {
+        /*
+         * TODO: code for read bytes here
+         * use following:
+         * addr - BOARD_MIN_ADDRESS
+         * bts - BOARD_SPACE_CAPACITY
+         * Inform about read error if any occurs
+         */
+        // readbt = ReadByte(addr+i)
+
+        CommSendBytes(&readbt, 1); // give raw bytes to usr
+    }
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsWriteAll(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 1) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    usr_msg_status_t usrmsg_status =
+            UsrMsgDispWriteAllInfo(
+                    BOARD_SPACE_CAPACITY,
+                    out_buff,
+                    out_buff_size);
+    if(usrmsg_status != USR_MSG_SUCCESS)
+        return OPTS_CRITICAL_ERR;
+
+    // ----- ask usr if he is sure to proceed -----
+    uint8_t proceed = 0;
+    usrmsg_status =
+            UsrMsgAskForProceed(inp_buff, inp_buff_size, &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_all_data_prompt,
+            sizeof(usr_msg_all_data_prompt-1));
+    CommCleanMsgBuffer();
+
+    uint8_t writebt = 0;
+    for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
+    {
+        while(CommGetMsg(sizeof(writebt), &writebt, sizeof(writebt)) != COMM_SUCCESS);
+
+        /*
+         * TODO: code for write bytes here
+         * use following:
+         * addr - BOARD_MIN_ADDRESS
+         * bts - BOARD_SPACE_CAPACITY
+         * Inform about read error if any occurs
+         */
+        // WriteByte(addr+i)
     }
 
     CommSendMsgFromFlash(

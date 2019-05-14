@@ -26,7 +26,7 @@
 #define USR_MSG_MAIN_MAKE_SELECTION_PROMPT 8
 
 //!< maximums
-#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 9
+#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 11
 #define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
 
 //!< main menu choices
@@ -34,8 +34,10 @@
 #define USR_MSG_WRITE_BYTES_CHOICE '2'
 #define USR_MSG_READ_ALL_CHOICE '3'
 #define USR_MSG_WRITE_ALL_CHOICE '4'
-#define USR_MSG_DBG_SC_01_CHOICE '5'
-#define USR_MSG_DBG_SC_02_CHOICE '6'
+#define USR_MSG_ERASE_SECTOR_CHOICE '5'
+#define USR_MSG_ERASE_ALL_CHOICE '6'
+#define USR_MSG_DBG_SC_01_CHOICE '7'
+#define USR_MSG_DBG_SC_02_CHOICE '8'
 
 extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
@@ -74,6 +76,12 @@ extern const char usr_msg_data_format_ascii[] PROGMEM;
 extern const char usr_msg_data_format_bytes[] PROGMEM;
 extern const char usr_msg_data_ascii_prompt[] PROGMEM;
 extern const char usr_msg_data_raw_prompt[] PROGMEM;
+
+//!< ----- Infos for read & write all -----
+extern const char usr_msg_readall_info[] PROGMEM;
+extern const char usr_msg_writeall_info[] PROGMEM;
+extern const char usr_msg_memsize_is[] PROGMEM;
+extern const char usr_msg_all_data_prompt[] PROGMEM;
 
 //!< Output format
 typedef enum
@@ -313,5 +321,42 @@ usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt);
 usr_msg_status_t UsrMsgAddrBtsCheck(
         uint32_t addr,
         uint32_t bts);
+/*
+ * @brief Displays information to user about read-all behavior.
+ *
+ * @param mem_size Total size of the memory that's going to be read.
+ * @param workbuff A pointer to a work buffer which is needed by this function for:
+ * - u32 to hex ascii conversion purposes
+ * - displaying the message via comm
+ * @param workbuff_size A size (in bytes) of the given workbuff.
+ * This shall be no less than 9.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the info.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispReadAllInfo(
+        uint32_t mem_size,
+        unsigned char* workbuff,
+        uint8_t workbuff_size);
+
+/*
+ * @brief Displays information to user about write-all behavior.
+ *
+ * @param mem_size Total size of the memory that's going to be written.
+ * @param workbuff A pointer to a work buffer which is needed by this function for:
+ * - u32 to hex ascii conversion purposes
+ * - displaying the message via comm
+ * @param workbuff_size A size (in bytes) of the given workbuff.
+ * This shall be no less than 9.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the info.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispWriteAllInfo(
+        uint32_t mem_size,
+        unsigned char* workbuff,
+        uint8_t workbuff_size);
 
 #endif /* INCLUDE_USR_MSG_H_ */
