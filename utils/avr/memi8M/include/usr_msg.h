@@ -26,7 +26,7 @@
 #define USR_MSG_MAIN_MAKE_SELECTION_PROMPT 8
 
 //!< maximums
-#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 11
+#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 13
 #define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
 
 //!< main menu choices
@@ -35,9 +35,11 @@
 #define USR_MSG_READ_ALL_CHOICE '3'
 #define USR_MSG_WRITE_ALL_CHOICE '4'
 #define USR_MSG_ERASE_SECTOR_CHOICE '5'
-#define USR_MSG_ERASE_ALL_CHOICE '6'
-#define USR_MSG_DBG_SC_01_CHOICE '7'
-#define USR_MSG_DBG_SC_02_CHOICE '8'
+#define USR_MSG_ERASE_BLOCK_CHOICE '6'
+#define USR_MSG_ERASE_ALL_CHOICE '7'
+#define USR_MSG_CHECK_PROD_ID_CHOICE '8'
+#define USR_MSG_DBG_SC_01_CHOICE '9'
+#define USR_MSG_DBG_SC_02_CHOICE 'A'
 
 extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
@@ -83,6 +85,13 @@ extern const char usr_msg_writeall_info[] PROGMEM;
 extern const char usr_msg_memsize_is[] PROGMEM;
 extern const char usr_msg_all_data_prompt[] PROGMEM;
 
+//!< -----------Prompts for erase ------------
+extern const char usr_msg_sector_addr_prompt[] PROGMEM;
+extern const char usr_msg_sector_addr_fmt_advice[] PROGMEM;
+extern const char usr_msg_block_addr_prompt[] PROGMEM;
+extern const char usr_msg_block_addr_fmt_advice[] PROGMEM;
+extern const char usr_msg_sector_addr_out_of_range_err[] PROGMEM;
+
 //!< Output format
 typedef enum
 {
@@ -119,6 +128,29 @@ usr_msg_status_t UsrMsgAskForAddr(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         uint32_t* addr);
+
+/*
+ * @brief Interactively (using comm) asks user for the sector address.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param sector_addr A pointer where the result (obtained sector address) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the sector address from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (sector_addr is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForSectorAddr(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* sector_addr);
 
 /*
  * @brief Interactively (using comm) asks user for number of bytes.
@@ -321,6 +353,21 @@ usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt);
 usr_msg_status_t UsrMsgAddrBtsCheck(
         uint32_t addr,
         uint32_t bts);
+
+/*
+ * @brief Checks the sanity of the sector_addr.
+ *
+ * @details This function takes sector_addr and checks if
+ * its value is sane. If there is a problem with it, sends appropriate message to
+ * user informing him about it.
+ *
+ * @param sector_addr Sector address to be checked.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the given sector_addr is sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given sector_addr is not sane.
+ */
+usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr);
 /*
  * @brief Displays information to user about read-all behavior.
  *

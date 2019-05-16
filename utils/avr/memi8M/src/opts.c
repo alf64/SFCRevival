@@ -374,3 +374,72 @@ opts_status_t OptsWriteAll(
 
     return OPTS_SUCCESS;
 }
+
+opts_status_t OptsEraseSector(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 8) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    uint32_t sector_addr = 0;
+    usr_msg_status_t usrmsg_status =
+            UsrMsgAskForSectorAddr(
+                    inp_buff,
+                    inp_buff_size,
+                    &sector_addr);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status = UsrMsgSectorAddrCheck(sector_addr);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status = UsrMsgDispAddrAsAscii(
+            sector_addr,
+            out_buff,
+            out_buff_size);
+    if(usrmsg_status == USR_MSG_FAILED)
+        return OPTS_CRITICAL_ERR;
+
+    uint8_t proceed = 0;
+    usrmsg_status = UsrMsgAskForProceed(
+            inp_buff,
+            inp_buff_size,
+            &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+        return OPTS_NEED_RETRY;
+
+    /*
+     * Up to this point you have valid sector_addr.
+     * TODO: erase sector from mem
+     */
+
+    return OPTS_SUCCESS;
+}

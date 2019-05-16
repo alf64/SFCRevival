@@ -184,10 +184,49 @@ int main(void)
             }
             case USR_MSG_ERASE_SECTOR_CHOICE:
             {
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsEraseSector(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
+                    {
+                        while(1){}; // halt forever
+                    }
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                } while(retry);
+
+                break;
+            }
+            case USR_MSG_ERASE_BLOCK_CHOICE:
+            {
+                //TODO: erase block functionality here
                 break;
             }
             case USR_MSG_ERASE_ALL_CHOICE:
             {
+                //TODO: erase chip functionality here
+                break;
+            }
+            case USR_MSG_CHECK_PROD_ID_CHOICE:
+            {
+                //TODO: Read Manufacturer ID and Product ID using Software ID Entry & Exits commands
                 break;
             }
             default:

@@ -21,10 +21,12 @@ const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_C
         {"3. Read all memory."},
         {"4. Write all memory."},
         {"5. Erase sector."},
-        {"6. Erase all memory."},
-        {"7. Debug scenario 1."},
-        {"8. Debug scenario 2."},
-        {"Select [1 - 8] (ascii format): "}
+        {"6. Erase block."},
+        {"7. Erase all memory."},
+        {"8. Check Product ID."},
+        {"9. Debug scenario 1."},
+        {"A. Debug scenario 2."},
+        {"Select [1 - A] (ascii format): "}
 };
 
 const char usr_msg_unsupported_sel[] PROGMEM = {
@@ -139,6 +141,24 @@ const char usr_msg_all_data_prompt[] PROGMEM = {
 };
 // --------------------------------------------
 
+//!< -----------Prompts for erase ------------
+const char usr_msg_sector_addr_prompt[] PROGMEM = {
+        "Provide sector address "
+};
+const char usr_msg_sector_addr_fmt_advice[] PROGMEM = {
+        "(use 8-char hex ascii from range 00000000 - 000000FF, i.e. 000000AB): "
+};
+const char usr_msg_block_addr_prompt[] PROGMEM = {
+        "Provide block address "
+};
+const char usr_msg_block_addr_fmt_advice[] PROGMEM = {
+        "(use 8-char hex ascii from range 00000000 - 0000000F, i.e. 0000000A): "
+};
+const char usr_msg_sector_addr_out_of_range_err[] PROGMEM = {
+        "Error, given sector address out of range."
+};
+// --------------------------------------------
+
 usr_msg_status_t UsrMsgAskForAddr(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
@@ -158,6 +178,45 @@ usr_msg_status_t UsrMsgAskForAddr(
     CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
 
     ascii_status_t ascii_status = AsciiToU32(usr_input_buff, addr);
+    if(ascii_status == ASCII_INVALID_RANGE)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_invalid_input_not_hex,
+                sizeof(usr_msg_invalid_input_not_hex-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if(ascii_status == ASCII_FAILED)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                sizeof(usr_msg_critical_err-1));
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForSectorAddr(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* sector_addr)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 8) || (sector_addr == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_sector_addr_prompt,
+            sizeof(usr_msg_sector_addr_prompt-1));
+    CommSendMsgFromFlash(
+            usr_msg_sector_addr_fmt_advice,
+            sizeof(usr_msg_sector_addr_fmt_advice-1));
+    CommCleanMsgBuffer();
+    while(CommGetMsg(8, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+    ascii_status_t ascii_status = AsciiToU32(usr_input_buff, sector_addr);
     if(ascii_status == ASCII_INVALID_RANGE)
     {
         CommSendMsgFromFlash(
@@ -469,7 +528,7 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
         uint32_t addr,
         uint32_t bts)
 {
-    if(addr > BOARD_MAX_ADDRESS)
+    if((addr > BOARD_MAX_ADDRESS) || (addr < BOARD_MIN_ADDRESS))
     {
         CommSendMsgFromFlash(
                 usr_msg_addr_out_of_range_err,
@@ -488,6 +547,21 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
         CommSendMsgFromFlash(
                 usr_msg_addr_vs_bts_err,
                 sizeof(usr_msg_addr_vs_bts_err-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr)
+{
+    if((sector_addr > BOARD_MAX_SECTOR_ADDRESS) || (sector_addr < BOARD_MIN_SECTOR_ADDRESS))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_sector_addr_out_of_range_err,
+                sizeof(usr_msg_sector_addr_out_of_range_err-1));
         return USR_MSG_INVALID_INPUT;
     }
     else
