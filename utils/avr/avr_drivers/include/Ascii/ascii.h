@@ -38,6 +38,26 @@ ascii_status_t AsciiToU8(
         uint8_t* output);
 
 /*
+ * @brief Function converts uint8_t to char (ascii).
+ *
+ * @param input An uint8_t to be converted.
+ * @param output A char array where the conversion result shall be stored.
+ * @param output_size A size (in bytes) of the given output array.
+ * output_size shall be at least of size: 3 bytes (2 for actual data, 1 for '\0' appending purposes).
+ *
+ * @attention
+ * This function appends NULL ('\0;) at the end of the given output array.
+ *
+ * @returns ascii_status_t
+ * @retval ASCII_SUCCESS If succeeded to perform conversion.
+ * @retval ASCII_FAILED If failed to perform conversion.
+ */
+ascii_status_t U8ToAscii(
+        uint8_t input,
+        unsigned char* output,
+        uint8_t output_size);
+
+/*
  * @brief Function converts char (ascii) to uint32_t.
  *
  * @details
@@ -69,6 +89,10 @@ ascii_status_t AsciiToU32(
  *
  * @attention
  * This function appends NULL ('\0;) at the end of the given output array.
+ *
+ * @returns ascii_status_t
+ * @retval ASCII_SUCCESS If succeeded to perform conversion.
+ * @retval ASCII_FAILED If failed to perform conversion.
  */
 ascii_status_t U32ToAscii(
         uint32_t input,

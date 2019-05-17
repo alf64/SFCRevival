@@ -126,6 +126,23 @@ ascii_status_t AsciiToU8(
     return status;
 }
 
+ascii_status_t U8ToAscii(
+        uint8_t input,
+        unsigned char* output,
+        uint8_t output_size)
+{
+    if(output == NULL)
+        return ASCII_FAILED;
+    if(output_size < 3)
+        return ASCII_FAILED;
+
+    bt_to_hex(input, output, output_size);
+    // append NULL at the end of output
+    output[2] = '\0';
+
+    return ASCII_SUCCESS;
+}
+
 ascii_status_t AsciiToU32(
         const unsigned char* input,
         uint32_t* output)

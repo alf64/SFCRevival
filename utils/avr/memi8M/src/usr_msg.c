@@ -123,7 +123,7 @@ const char usr_msg_readall_info[] PROGMEM = {
         "Upon proceeding:\n"
         "*Read data will be provided as raw bytes.\n"
         "*There won't be any messages send besides the data.\n"
-        "*Program will halt forever upon reading all the data.\n"
+        "*Program will halt forever upon reading all the data."
 };
 const char usr_msg_writeall_info[] PROGMEM = {
         "Attempting to write the whole memory...\n"
@@ -131,7 +131,7 @@ const char usr_msg_writeall_info[] PROGMEM = {
         "Upon proceeding:\n"
         "*Program expects user to provide all the data as raw bytes.\n"
         "*Confirmation message will be send upon writing all the data.\n"
-        "*Program will continue upon writing all the data.\n"
+        "*Program will continue upon writing all the data."
 };
 const char usr_msg_memsize_is[] PROGMEM = {
         "Total number of data (bytes): "
@@ -156,6 +156,18 @@ const char usr_msg_block_addr_fmt_advice[] PROGMEM = {
 };
 const char usr_msg_sector_addr_out_of_range_err[] PROGMEM = {
         "Error, given sector address out of range."
+};
+const char usr_msg_block_addr_out_of_range_err[] PROGMEM = {
+        "Error, given block address out of range."
+};
+const char usr_msg_eraseall_info[] PROGMEM = {
+        "Attempting to erase chip memory..."
+};
+// --------------------------------------------
+
+//!< --------- Check for product id -----------
+const char usr_msg_check_prod_id_info[] PROGMEM = {
+        "Attempting to check Product Id..."
 };
 // --------------------------------------------
 
@@ -217,6 +229,45 @@ usr_msg_status_t UsrMsgAskForSectorAddr(
     CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
 
     ascii_status_t ascii_status = AsciiToU32(usr_input_buff, sector_addr);
+    if(ascii_status == ASCII_INVALID_RANGE)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_invalid_input_not_hex,
+                sizeof(usr_msg_invalid_input_not_hex-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if(ascii_status == ASCII_FAILED)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                sizeof(usr_msg_critical_err-1));
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForBlockAddr(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* block_addr)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 8) || (block_addr == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_block_addr_prompt,
+            sizeof(usr_msg_block_addr_prompt-1));
+    CommSendMsgFromFlash(
+            usr_msg_block_addr_fmt_advice,
+            sizeof(usr_msg_block_addr_fmt_advice-1));
+    CommCleanMsgBuffer();
+    while(CommGetMsg(8, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+
+    ascii_status_t ascii_status = AsciiToU32(usr_input_buff, block_addr);
     if(ascii_status == ASCII_INVALID_RANGE)
     {
         CommSendMsgFromFlash(
@@ -524,6 +575,16 @@ usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt)
     }
 }
 
+usr_msg_status_t UsrMsgDispProdIdAsAscii(
+        uint8_t man_id,
+        uint8_t prod_id,
+        unsigned char* workbuff,
+        uint8_t workbuff_size)
+{
+    // TODO: implement HERE!!!
+    return USR_MSG_SUCCESS;
+}
+
 usr_msg_status_t UsrMsgAddrBtsCheck(
         uint32_t addr,
         uint32_t bts)
@@ -562,6 +623,21 @@ usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr)
         CommSendMsgFromFlash(
                 usr_msg_sector_addr_out_of_range_err,
                 sizeof(usr_msg_sector_addr_out_of_range_err-1));
+        return USR_MSG_INVALID_INPUT;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgBlockAddrCheck(uint32_t block_addr)
+{
+    if((block_addr > BOARD_MAX_BLOCK_ADDRESS) || (block_addr < BOARD_MIN_BLOCK_ADDRESS))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_block_addr_out_of_range_err,
+                sizeof(usr_msg_block_addr_out_of_range_err-1));
         return USR_MSG_INVALID_INPUT;
     }
     else

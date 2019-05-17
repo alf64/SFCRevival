@@ -403,11 +403,7 @@ opts_status_t OptsEraseSector(
     }
 
     usrmsg_status = UsrMsgSectorAddrCheck(sector_addr);
-    if(usrmsg_status == USR_MSG_FAILED)
-    {
-        return OPTS_CRITICAL_ERR;
-    }
-    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    if(usrmsg_status == USR_MSG_INVALID_INPUT)
     {
         return OPTS_NEED_RETRY;
     }
@@ -439,7 +435,161 @@ opts_status_t OptsEraseSector(
     /*
      * Up to this point you have valid sector_addr.
      * TODO: erase sector from mem
+     * Important: Ams - A12 address lines of the mem are the drives for sector addr,
+     * so shift sector_addr left by 12
+     * In fact it is a normal addr now after shifting, with A11 - A0 zeroed-out
      */
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsEraseBlock(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 8) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    uint32_t block_addr = 0;
+    usr_msg_status_t usrmsg_status =
+            UsrMsgAskForBlockAddr(
+                    inp_buff,
+                    inp_buff_size,
+                    &block_addr);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status = UsrMsgBlockAddrCheck(block_addr);
+    if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status = UsrMsgDispAddrAsAscii(
+            block_addr,
+            out_buff,
+            out_buff_size);
+    if(usrmsg_status == USR_MSG_FAILED)
+        return OPTS_CRITICAL_ERR;
+
+    uint8_t proceed = 0;
+    usrmsg_status = UsrMsgAskForProceed(
+            inp_buff,
+            inp_buff_size,
+            &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+        return OPTS_NEED_RETRY;
+
+    /*
+     * Up to this point you have valid block_addr.
+     * TODO: erase block from mem
+     * Important: Ams - A16 address lines of the mem are the drives for block addr,
+     * so shift block_addr left by 16
+     * In fact it is a normal addr now after shifting, with A15 - A0 zeroed-out
+     */
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsEraseAll(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size)
+{
+    if((inp_buff == NULL) || (inp_buff_size < 1))
+        return OPTS_CRITICAL_ERR;
+
+    CommSendMsgFromFlash(
+            usr_msg_eraseall_info,
+            sizeof(usr_msg_eraseall_info-1));
+
+    uint8_t proceed;
+    usr_msg_status_t usrmsg_status =
+            UsrMsgAskForProceed(
+                    inp_buff,
+                    inp_buff_size,
+                    &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+        return OPTS_NEED_RETRY;
+
+    /*
+     * TODO: perform erase-chip here
+     */
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsCheckProdId(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size)
+{
+    if((inp_buff == NULL) || (inp_buff_size < 1))
+        return OPTS_CRITICAL_ERR;
+
+    CommSendMsgFromFlash(
+            usr_msg_check_prod_id_info,
+            sizeof(usr_msg_check_prod_id_info-1));
+
+    uint8_t proceed;
+    usr_msg_status_t usrmsg_status =
+            UsrMsgAskForProceed(
+                    inp_buff,
+                    inp_buff_size,
+                    &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+        return OPTS_NEED_RETRY;
+
+    // uint8_t man_id = 0; // manufacturer id
+    // uint8_t dev_id = 0; // device id
+    /*
+     * TODO:
+     * 1. Perform Software ID Entry command
+     * 2. Read Manufacturer's ID
+     * 3. Read Device ID
+     * 4. Perform Software ID Exit command (returns to Read Mode)
+     */
+    // ReadProdId(&manid, &devid)
+
+    // UsrMsgDispProdIdAsAscii()
+
+    // UsrMsgProdIdCheck()
 
     return OPTS_SUCCESS;
 }

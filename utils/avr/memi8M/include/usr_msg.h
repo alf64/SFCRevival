@@ -91,6 +91,9 @@ extern const char usr_msg_sector_addr_fmt_advice[] PROGMEM;
 extern const char usr_msg_block_addr_prompt[] PROGMEM;
 extern const char usr_msg_block_addr_fmt_advice[] PROGMEM;
 extern const char usr_msg_sector_addr_out_of_range_err[] PROGMEM;
+extern const char usr_msg_block_addr_out_of_range_err[] PROGMEM;
+extern const char usr_msg_eraseall_info[] PROGMEM;
+extern const char usr_msg_check_prod_id_info[] PROGMEM;
 
 //!< Output format
 typedef enum
@@ -151,6 +154,29 @@ usr_msg_status_t UsrMsgAskForSectorAddr(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         uint32_t* sector_addr);
+
+/*
+ * @brief Interactively (using comm) asks user for the block address.
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param block_addr A pointer where the result (obtained block address) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the block address from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (block_addr is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForBlockAddr(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* block_addr);
 
 /*
  * @brief Interactively (using comm) asks user for number of bytes.
@@ -337,6 +363,31 @@ usr_msg_status_t UsrMsgDispNoOfBtsAsAscii(
 usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt);
 
 /*
+ * @brief Displays given man_id (manufacturer id) and dev_id (device id) to user via comm.
+ *
+ * @details
+ * This function takes given man_id and dev_id, converts it internally to hex ascii and then
+ * sends it via comm to display it to user.
+ *
+ * @param man_id Manufacturer Id to be displayed.
+ * @param dev_id Device Id to be displayed.
+ * @param workbuff A pointer to a work buffer which is needed by this function for:
+ * - u8 to hex ascii conversion purposes
+ * - displaying the message via comm
+ * @param workbuff_size A size (in bytes) of the given workbuff.
+ * This shall be no less than 3.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to display the man_id and dev_id.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ */
+usr_msg_status_t UsrMsgDispProdIdAsAscii(
+        uint8_t man_id,
+        uint8_t prod_id,
+        unsigned char* workbuff,
+        uint8_t workbuff_size);
+
+/*
  * @brief Checks the sanity of the addr and bts.
  *
  * @details This function takes addr and bts ("number of bytes") and checks if
@@ -368,6 +419,22 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
  * @retval USR_MSG_INVALID_INPUT Means the given sector_addr is not sane.
  */
 usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr);
+
+/*
+ * @brief Checks the sanity of the block_addr.
+ *
+ * @details This function takes block_addr and checks if
+ * its value is sane. If there is a problem with it, sends appropriate message to
+ * user informing him about it.
+ *
+ * @param block_addr Block address to be checked.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the given block_addr is sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given block_addr is not sane.
+ */
+usr_msg_status_t UsrMsgBlockAddrCheck(uint32_t block_addr);
+
 /*
  * @brief Displays information to user about read-all behavior.
  *
@@ -405,5 +472,6 @@ usr_msg_status_t UsrMsgDispWriteAllInfo(
         uint32_t mem_size,
         unsigned char* workbuff,
         uint8_t workbuff_size);
+
 
 #endif /* INCLUDE_USR_MSG_H_ */
