@@ -184,7 +184,7 @@ opts_status_t OptsReadBytes(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            sizeof(usr_msg_job_done-1));
+            (sizeof(usr_msg_job_done)-1));
 
     return OPTS_SUCCESS;
 }
@@ -249,7 +249,7 @@ opts_status_t OptsWriteBytes(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            sizeof(usr_msg_job_done-1));
+            (sizeof(usr_msg_job_done)-1));
 
     return OPTS_SUCCESS;
 }
@@ -350,7 +350,7 @@ opts_status_t OptsWriteAll(
 
     CommSendMsgFromFlash(
             usr_msg_all_data_prompt,
-            sizeof(usr_msg_all_data_prompt-1));
+            (sizeof(usr_msg_all_data_prompt)-1));
     CommCleanMsgBuffer();
 
     uint8_t writebt = 0;
@@ -370,7 +370,7 @@ opts_status_t OptsWriteAll(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            sizeof(usr_msg_job_done-1));
+            (sizeof(usr_msg_job_done)-1));
 
     return OPTS_SUCCESS;
 }
@@ -520,7 +520,7 @@ opts_status_t OptsEraseAll(
 
     CommSendMsgFromFlash(
             usr_msg_eraseall_info,
-            sizeof(usr_msg_eraseall_info-1));
+            (sizeof(usr_msg_eraseall_info)-1));
 
     uint8_t proceed;
     usr_msg_status_t usrmsg_status =
@@ -549,14 +549,16 @@ opts_status_t OptsEraseAll(
 
 opts_status_t OptsCheckProdId(
         unsigned char* inp_buff,
-        uint32_t inp_buff_size)
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
 {
     if((inp_buff == NULL) || (inp_buff_size < 1))
         return OPTS_CRITICAL_ERR;
 
     CommSendMsgFromFlash(
             usr_msg_check_prod_id_info,
-            sizeof(usr_msg_check_prod_id_info-1));
+            (sizeof(usr_msg_check_prod_id_info)-1));
 
     uint8_t proceed;
     usr_msg_status_t usrmsg_status =
@@ -576,8 +578,8 @@ opts_status_t OptsCheckProdId(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    // uint8_t man_id = 0; // manufacturer id
-    // uint8_t dev_id = 0; // device id
+    uint8_t man_id = 0; // manufacturer id
+    uint8_t dev_id = 0; // device id
     /*
      * TODO:
      * 1. Perform Software ID Entry command
@@ -587,9 +589,21 @@ opts_status_t OptsCheckProdId(
      */
     // ReadProdId(&manid, &devid)
 
-    // UsrMsgDispProdIdAsAscii()
+    usrmsg_status =
+            UsrMsgDispProdIdAsAscii(
+                    man_id,
+                    dev_id,
+                    out_buff,
+                    out_buff_size);
+    if(usrmsg_status == USR_MSG_FAILED)
+        return OPTS_CRITICAL_ERR;
 
-    // UsrMsgProdIdCheck()
+    usrmsg_status =
+            UsrMsgProdIdCheck(
+                    man_id,
+                    dev_id);
+    if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        return OPTS_NEED_RETRY;
 
     return OPTS_SUCCESS;
 }

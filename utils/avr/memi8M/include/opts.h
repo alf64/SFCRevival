@@ -164,6 +164,9 @@ opts_status_t OptsEraseAll(
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
  * This shall be no less than 1.
+ * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
+ * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 3.
  *
  * @returns opts_status_t
  * @retval OPTS_SUCCESS If succeeded to check product id.
@@ -172,6 +175,8 @@ opts_status_t OptsEraseAll(
  */
 opts_status_t OptsCheckProdId(
         unsigned char* inp_buff,
-        uint32_t inp_buff_size);
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size);
 
 #endif /* INCLUDE_OPTS_H_ */

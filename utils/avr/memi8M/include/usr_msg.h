@@ -13,6 +13,7 @@
  *
  */
 #include <avr/pgmspace.h>
+#include "boards/memi8M_pcb.h"
 
 //!< main menu messages
 #define USR_MSG_MAIN_WELCOME 0
@@ -43,57 +44,65 @@
 
 extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
-extern const char usr_msg_unsupported_sel[] PROGMEM;
+extern const char usr_msg_unsupported_sel[23] PROGMEM;
 
-extern const char usr_msg_critical_err[] PROGMEM;
+extern const char usr_msg_critical_err[36] PROGMEM;
 
-extern const char usr_msg_input_received[] PROGMEM;
+extern const char usr_msg_input_received[16] PROGMEM;
 
-extern const char usr_msg_invalid_input_not_hex[] PROGMEM;
+extern const char usr_msg_invalid_input_not_hex[26] PROGMEM;
 
-extern const char usr_msg_proceed_prompt[] PROGMEM;
+extern const char usr_msg_proceed_prompt[24] PROGMEM;
 
-extern const char usr_msg_retry_prompt[] PROGMEM;
+extern const char usr_msg_retry_prompt[22] PROGMEM;
 
-extern const char usr_msg_job_done[] PROGMEM;
+extern const char usr_msg_job_done[11] PROGMEM;
 
-extern const char usr_msg_prog_to_restart[] PROGMEM;
+extern const char usr_msg_prog_to_restart[23] PROGMEM;
 
-extern const char usr_msg_system_halted[] PROGMEM;
+extern const char usr_msg_system_halted[16] PROGMEM;
 
 //!< ----- Prompts for read & write bytes -----
-extern const char usr_msg_addr_prompt[] PROGMEM;
-extern const char usr_msg_addr_fmt_advice[] PROGMEM;
-extern const char usr_msg_no_bytes_prompt[] PROGMEM;
-extern const char usr_msg_no_bytes_fmt_advice[] PROGMEM;
-extern const char usr_msg_given_addr_is[] PROGMEM;
-extern const char usr_msg_given_no_bytes_is[] PROGMEM;
-extern const char usr_msg_addr_out_of_range_err[] PROGMEM;
-extern const char usr_msg_bts_out_of_range_err[] PROGMEM;
-extern const char usr_msg_addr_vs_bts_err[] PROGMEM;
-extern const char usr_msg_data_format_prompt[] PROGMEM;
-extern const char usr_msg_data_format_invalid_err[] PROGMEM;
-extern const char usr_msg_given_data_format_is[] PROGMEM;
-extern const char usr_msg_data_format_ascii[] PROGMEM;
-extern const char usr_msg_data_format_bytes[] PROGMEM;
-extern const char usr_msg_data_ascii_prompt[] PROGMEM;
-extern const char usr_msg_data_raw_prompt[] PROGMEM;
+extern const char usr_msg_addr_prompt[26] PROGMEM;
+extern const char usr_msg_addr_fmt_advice[71] PROGMEM;
+extern const char usr_msg_no_bytes_prompt[25] PROGMEM;
+extern const char usr_msg_no_bytes_fmt_advice[71] PROGMEM;
+extern const char usr_msg_given_addr_is[19] PROGMEM;
+extern const char usr_msg_given_no_bytes_is[24] PROGMEM;
+extern const char usr_msg_addr_out_of_range_err[35] PROGMEM;
+extern const char usr_msg_bts_out_of_range_err[33] PROGMEM;
+extern const char usr_msg_addr_vs_bts_err[40] PROGMEM;
+extern const char usr_msg_data_format_prompt[44] PROGMEM;
+extern const char usr_msg_data_format_invalid_err[34] PROGMEM;
+extern const char usr_msg_given_data_format_is[23] PROGMEM;
+extern const char usr_msg_data_format_ascii[6] PROGMEM;
+extern const char usr_msg_data_format_bytes[6] PROGMEM;
+extern const char usr_msg_data_ascii_prompt[43] PROGMEM;
+extern const char usr_msg_data_raw_prompt[26] PROGMEM;
 
 //!< ----- Infos for read & write all -----
-extern const char usr_msg_readall_info[] PROGMEM;
-extern const char usr_msg_writeall_info[] PROGMEM;
-extern const char usr_msg_memsize_is[] PROGMEM;
-extern const char usr_msg_all_data_prompt[] PROGMEM;
+extern const char usr_msg_readall_info[215] PROGMEM;
+extern const char usr_msg_writeall_info[240] PROGMEM;
+extern const char usr_msg_memsize_is[31] PROGMEM;
+extern const char usr_msg_all_data_prompt[31] PROGMEM;
 
 //!< -----------Prompts for erase ------------
-extern const char usr_msg_sector_addr_prompt[] PROGMEM;
-extern const char usr_msg_sector_addr_fmt_advice[] PROGMEM;
-extern const char usr_msg_block_addr_prompt[] PROGMEM;
-extern const char usr_msg_block_addr_fmt_advice[] PROGMEM;
-extern const char usr_msg_sector_addr_out_of_range_err[] PROGMEM;
-extern const char usr_msg_block_addr_out_of_range_err[] PROGMEM;
-extern const char usr_msg_eraseall_info[] PROGMEM;
-extern const char usr_msg_check_prod_id_info[] PROGMEM;
+extern const char usr_msg_sector_addr_prompt[24] PROGMEM;
+extern const char usr_msg_sector_addr_fmt_advice[71] PROGMEM;
+extern const char usr_msg_block_addr_prompt[23] PROGMEM;
+extern const char usr_msg_block_addr_fmt_advice[71] PROGMEM;
+extern const char usr_msg_sector_addr_out_of_range_err[42] PROGMEM;
+extern const char usr_msg_block_addr_out_of_range_err[41] PROGMEM;
+extern const char usr_msg_eraseall_info[35] PROGMEM;
+extern const char usr_msg_check_prod_id_info[34] PROGMEM;
+extern const char usr_msg_man_id_is[18] PROGMEM;
+extern const char usr_msg_dev_id_is[12] PROGMEM;
+extern const char usr_msg_man_id_recognized_as[32] PROGMEM;
+extern const char usr_msg_dev_id_recognized_as[26] PROGMEM;
+extern const char usr_msg_man_id_unrecognized[31] PROGMEM;
+extern const char usr_msg_dev_id_unrecognized[25] PROGMEM;
+extern const char usr_msg_man_id_name[MEM_MANUFACTURER_NAME_LEN] PROGMEM;
+extern const char usr_msg_dev_id_name[MEM_DEVICE_NAME_LEN] PROGMEM;
 
 //!< Output format
 typedef enum
@@ -383,7 +392,7 @@ usr_msg_status_t UsrMsgDispDataFmtAsAscii(usr_data_fmt fmt);
  */
 usr_msg_status_t UsrMsgDispProdIdAsAscii(
         uint8_t man_id,
-        uint8_t prod_id,
+        uint8_t dev_id,
         unsigned char* workbuff,
         uint8_t workbuff_size);
 
@@ -434,6 +443,24 @@ usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr);
  * @retval USR_MSG_INVALID_INPUT Means the given block_addr is not sane.
  */
 usr_msg_status_t UsrMsgBlockAddrCheck(uint32_t block_addr);
+
+/*
+ * @brief Checks the sanity of the man_id (manufacturer id) and dev_id (device id).
+ *
+ * @details This function takes man_id and dev_id then checks if
+ * their values are sane. If there is a problem with them, sends appropriate message to
+ * user informing him about it.
+ *
+ * @param man_id Manufacturer Id to be checked.
+ * @param dev_id Device Id to be checked.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the given man_id and dev_id are sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given man_id and dev_id are not sane.
+ */
+usr_msg_status_t UsrMsgProdIdCheck(
+        uint8_t man_id,
+        uint8_t dev_id);
 
 /*
  * @brief Displays information to user about read-all behavior.

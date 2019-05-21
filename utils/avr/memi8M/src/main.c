@@ -50,7 +50,7 @@ int main(void)
         {
             c_stat = CommGetMsg(1, usr_input, sizeof(usr_input));
         } while(c_stat != COMM_SUCCESS);
-        CommSendMsgFromFlash(usr_msg_input_received, sizeof(usr_msg_input_received-1));
+        CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1));
 
         switch(usr_input[0])
         {
@@ -280,19 +280,46 @@ int main(void)
             }
             case USR_MSG_CHECK_PROD_ID_CHOICE:
             {
-                //TODO: Read Manufacturer ID and Product ID using Software ID Entry & Exits commands
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsCheckProdId(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
+                    {
+                        while(1){}; // halt forever
+                    }
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                } while(retry);
+
                 break;
             }
             default:
             {
-                CommSendMsgFromFlash(usr_msg_unsupported_sel, sizeof(usr_msg_unsupported_sel-1));
+                CommSendMsgFromFlash(usr_msg_unsupported_sel, (sizeof(usr_msg_unsupported_sel)-1));
                 break;
             }
         }
 
         CommSendMsgFromFlash(
                 usr_msg_prog_to_restart,
-                sizeof(usr_msg_prog_to_restart-1));
+                (sizeof(usr_msg_prog_to_restart)-1));
         uint8_t proceed = 0;
         usr_msg_status_t usrmsg_status =
                 UsrMsgAskForProceed(usr_input, sizeof(usr_input), &proceed);
@@ -306,7 +333,7 @@ int main(void)
             {
                 CommSendMsgFromFlash(
                         usr_msg_system_halted,
-                        sizeof(usr_msg_system_halted-1));
+                        (sizeof(usr_msg_system_halted)-1));
                 while(1){};; // user said no, halt forever
             }
             // do nothing, restarting the program main loop

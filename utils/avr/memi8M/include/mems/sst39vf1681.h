@@ -12,7 +12,16 @@
  * Specifics for sst39vf1681 flash chip.
  */
 
-#define MEM_CHIP_NAME "SST39VF1681"
+//!< Length (in bytes) of the MEM_DEVICE_NAME (including NULL at the end)
+#define MEM_DEVICE_NAME_LEN (11+1)
+#define MEM_DEVICE_NAME "SST39VF1681"
+//!< Length (in bytes) of the MEM_MANUFACTURER_NAME (including NULL at the end)
+#define MEM_MANUFACTURER_NAME_LEN (3+1)
+#define MEM_MANUFACTURER_NAME "SST"
+#define MEM_MANUFACTURER_ID_ADDRESS 0x0
+#define MEM_DEVICE_ID_ADDRESS 0x1
+#define MEM_MANUFACTURER_ID 0xBF
+#define MEM_DEVICE_ID 0xC8
 
 //!< Capacity of this mem is 2MB (16Mb)
 #define MEM_SPACE_CAPACITY 0x00200000
