@@ -38,8 +38,49 @@
 #define MEM_MIN_BLOCK_ADDRESS 0x00000000
 #define MEM_MAX_BLOCK_ADDRESS 0x0000001F
 
+// ----- time constants -----
 /*
- * Specific programming and interfacing codes here
+ * flash setup time: addr -> data.
+ * Doc says: 70 - 90 ns.
+ * Setting to 1 us.
  */
+#define SST_SETUPTIME_US 1.0f
+
+/*
+ * WE pulse width time.
+ * Doc says 40ns, setting to 1us.
+ */
+#define SST_WE_LOW_TIME_US 1.0f
+
+/*
+ * WE pulse width high time.
+ * Doc says 30ns, setting to 1us.
+ */
+#define SST_WE_HIGH_TIME_US 1.0f
+
+/*
+ * Sector-Erase internal operation time in ms.
+ * Doc says it can be up to 25 ms.
+ */
+#define SST_SECTOR_ERASE_TIME_MS 26
+
+/*
+ * Block-Erase internal operation time in ms.
+ * Doc says it can be up to 25 ms.
+ */
+#define SST_BLOCK_ERASE_TIME_MS 26
+
+/*
+ * Chip-Erase internal operation time in ms.
+ * Doc says it can be up to 50 ms.
+ */
+#define SST_CHIP_ERASE_TIME_MS 51
+
+/*
+ * Byte-Program internal operation time in us.
+ * Doc says it can be up to 10us.
+ */
+#define SST_BYTE_PROGRAM_TIME_US 11
+// --------------------------
 
 #endif /* INCLUDE_MEMS_SST39VF1681_H_ */
