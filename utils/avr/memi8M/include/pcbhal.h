@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <avr/io.h>
+#include <util/delay.h>
 #include "boards/memi8M_pcb.h"
 
 /*
@@ -55,6 +56,14 @@ static inline void pcbhal_si_srclk_clear()
     UC_PORT1 &= ~(1<<SI_SRCLK);
 }
 
+static inline void pcbhal_si_srclk_toggle()
+{
+    _delay_us(SI_SRCLK_HALF_PERIOD_US);
+    UC_PORT1 ^= (1<<SI_SRCLK);
+    _delay_us(SI_SRCLK_HALF_PERIOD_US);
+    UC_PORT1 ^= (1<<SI_SRCLK);
+}
+
 /*
  * @brief Sets SI_SRCLR to '1'.
  */
@@ -85,6 +94,14 @@ static inline void pcbhal_si_rclk_set()
 static inline void pcbhal_si_rclk_clear()
 {
     UC_PORT1 &= ~(1<<SI_RCLK);
+}
+
+static inline void pcbhal_si_rclk_toggle()
+{
+    _delay_us(SI_RCLK_HALF_PERIOD_US);
+    UC_PORT1 ^= (1<<SI_RCLK);
+    _delay_us(SI_RCLK_HALF_PERIOD_US);
+    UC_PORT1 ^= (1<<SI_RCLK);
 }
 
 /*
@@ -181,6 +198,14 @@ static inline void pcbhal_so_clk_set()
 static inline void pcbhal_so_clk_clear()
 {
     UC_PORT2 &= ~(1<<SO_CLK);
+}
+
+static inline void pcbhal_so_clk_toggle()
+{
+    _delay_us(SO_CLK_HALF_PERIOD_US);
+    UC_PORT2 ^= (1<<SO_CLK);
+    _delay_us(SO_CLK_HALF_PERIOD_US);
+    UC_PORT2 ^= (1<<SO_CLK);
 }
 
 /*
