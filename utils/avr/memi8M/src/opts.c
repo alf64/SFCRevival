@@ -14,6 +14,7 @@
 #include "usr_msg.h"
 #include "opts.h"
 #include "boards/memi8M_pcb.h"
+#include "sst.h"
 
 
 /*
@@ -162,15 +163,14 @@ opts_status_t OptsReadBytes(
     uint8_t readbt = 0;
     for(uint32_t i = 0; i < bts; i++)
     {
-        /*
-         * TODO: code for read bytes here
-         * up to this point you shall have the following vars set:
-         * addr - the address to be read
-         * bts - the number of bytes to be read
-         * fmt - format to use when giving read bytes to user via comm
-         * Inform about read error if any occurs
-         */
-        // readbt = ReadByte(addr+i)
+        sst_ec_t sst_status = SSTRead((addr+i), &readbt);
+        if(sst_status != SST_SUCCESS)
+        {
+            CommSendMsgFromFlash(
+                    usr_msg_critical_err,
+                    (sizeof(usr_msg_critical_err)-1));
+            return OPTS_CRITICAL_ERR;
+        }
 
         if(fmt == USR_DATA_FMT_ASCII)
         {

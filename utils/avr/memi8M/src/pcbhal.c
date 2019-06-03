@@ -22,3 +22,101 @@ void pcbhal_init()
     UC_DDR2 &= ~(1<<SO_QH);
 }
 
+void pcbhal_4245_set_ab_outs_enable()
+{
+    pcbhal_data_dir_set();
+    pcbhal_data_oe_clear();
+}
+
+void pcbhal_4245_set_ba_outs_enable()
+{
+    pcbhal_data_dir_clear();
+    pcbhal_data_oe_clear();
+}
+
+void pcbhal_4245_outs_disable()
+{
+    pcbhal_data_oe_set();
+}
+
+void pcbhal_595a_outs_enable()
+{
+    pcbhal_si_oe_a_clear();
+}
+
+void pcbhal_595a_outs_disable()
+{
+    pcbhal_si_oe_a_set();
+}
+
+void pcbhal_595d_outs_enable()
+{
+    pcbhal_si_oe_d_clear();
+}
+
+void pcbhal_595d_outs_disable()
+{
+    pcbhal_si_oe_d_set();
+}
+
+void pcbhal_595_clear()
+{
+    _delay_us(1.0f);
+    pcbhal_si_srclr_toggle();
+    _delay_us(1.0f);
+    pcbhal_si_srclr_toggle();
+}
+
+void pcbhal_595_sr_single_clock_run()
+{
+    _delay_us(SI_SRCLK_HALF_PERIOD_US);
+    pcbhal_si_srclk_toggle();
+    _delay_us(SI_SRCLK_HALF_PERIOD_US);
+    pcbhal_si_srclk_toggle();
+}
+
+void pcbhal_595_r_single_clock_run()
+{
+    _delay_us(SI_RCLK_HALF_PERIOD_US);
+    pcbhal_si_rclk_toggle();
+    _delay_us(SI_RCLK_HALF_PERIOD_US);
+    pcbhal_si_rclk_toggle();
+}
+
+void pcbhal_sst_enable()
+{
+    pcbhal_rom_ce_clear();
+    pcbhal_rom_oe_clear();
+}
+
+void pcbhal_sst_disable()
+{
+    pcbhal_rom_ce_set();
+    pcbhal_rom_oe_set();
+}
+
+void pcbhal_166_enter_loadmode()
+{
+    pcbhal_so_shld_clear();
+}
+
+void pcbhal_166_enter_shiftmode()
+{
+    pcbhal_so_shld_set();
+}
+
+void pcbhal_166_single_clock_run()
+{
+    _delay_us(SO_CLK_HALF_PERIOD_US);
+    pcbhal_so_clk_toggle();
+    _delay_us(SO_CLK_HALF_PERIOD_US);
+    pcbhal_so_clk_toggle();
+}
+
+void pcbhal_166_clear()
+{
+    _delay_us(1.0f);
+    pcbhal_so_clr_toggle();
+    _delay_us(1.0f);
+    pcbhal_so_clr_toggle();
+}

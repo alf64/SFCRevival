@@ -58,9 +58,6 @@ static inline void pcbhal_si_srclk_clear()
 
 static inline void pcbhal_si_srclk_toggle()
 {
-    _delay_us(SI_SRCLK_HALF_PERIOD_US);
-    UC_PORT1 ^= (1<<SI_SRCLK);
-    _delay_us(SI_SRCLK_HALF_PERIOD_US);
     UC_PORT1 ^= (1<<SI_SRCLK);
 }
 
@@ -81,6 +78,14 @@ static inline void pcbhal_si_srclr_clear()
 }
 
 /*
+ * @brief Toggles the SI_SRCLR.
+ */
+static inline void pcbhal_si_srclr_toggle()
+{
+    UC_PORT1 ^= (1<SI_SRCLR);
+}
+
+/*
  * @brief Sets SI_RCLK to '1'.
  */
 static inline void pcbhal_si_rclk_set()
@@ -96,11 +101,11 @@ static inline void pcbhal_si_rclk_clear()
     UC_PORT1 &= ~(1<<SI_RCLK);
 }
 
+/*
+ * @brief Toggles the SI_RCLK.
+ */
 static inline void pcbhal_si_rclk_toggle()
 {
-    _delay_us(SI_RCLK_HALF_PERIOD_US);
-    UC_PORT1 ^= (1<<SI_RCLK);
-    _delay_us(SI_RCLK_HALF_PERIOD_US);
     UC_PORT1 ^= (1<<SI_RCLK);
 }
 
@@ -200,11 +205,11 @@ static inline void pcbhal_so_clk_clear()
     UC_PORT2 &= ~(1<<SO_CLK);
 }
 
+/*
+ * @brief Toggles the SO_CLK.
+ */
 static inline void pcbhal_so_clk_toggle()
 {
-    _delay_us(SO_CLK_HALF_PERIOD_US);
-    UC_PORT2 ^= (1<<SO_CLK);
-    _delay_us(SO_CLK_HALF_PERIOD_US);
     UC_PORT2 ^= (1<<SO_CLK);
 }
 
@@ -222,6 +227,14 @@ static inline void pcbhal_so_clr_set()
 static inline void pcbhal_so_clr_clear()
 {
     UC_PORT2 &= ~(1<<SO_CLR);
+}
+
+/*
+ * @brief Toggles the SO_CLR.
+ */
+static inline void pcbhal_so_clr_toggle()
+{
+    UC_PORT2 ^= (1<<SO_CLR);
 }
 
 /*
@@ -287,5 +300,94 @@ static inline void pcbhal_so_qh_clear()
 {
     UC_PORT2 &= ~(1<<SO_QH);
 }
+
+/*
+ * @brief Returns the logical value of SO_QH ('0' or '1').
+ */
+static inline uint8_t pcbhal_so_qh_get()
+{
+    return ((UC_PIN2>>SO_QH)&0x01);
+}
+
+/*
+ * @brief Sets data direction of 4245 to A -> B and enables its outputs.
+ */
+void pcbhal_4245_set_ab_outs_enable();
+
+/*
+ * @brief Sets data direction of 4245 to B -> A and enables its outputs.
+ */
+void pcbhal_4245_set_ba_outs_enable();
+
+/*
+ * @brief Disables outputs of 4245.
+ */
+void pcbhal_4245_outs_disable();
+
+/*
+ * @brief Enables outputs of 595 address regs.
+ */
+void pcbhal_595a_outs_enable();
+
+/*
+ * @brief Disables outputs of 595 address regs.
+ */
+void pcbhal_595a_outs_disable();
+
+/*
+ * @brief Enables outputs of 595 data reg.
+ */
+void pcbhal_595d_outs_enable();
+
+/*
+ * @brief Disables outputs of 595 data reg.
+ */
+void pcbhal_595d_outs_disable();
+
+/*
+ * @brief Clears (the internal regs of) all 595's.
+ */
+void pcbhal_595_clear();
+
+/*
+ * @brief Does single sr (shift regs) clock run on all 595's.
+ */
+void pcbhal_595_sr_single_clock_run();
+
+/*
+ * @brief Does single r (storage register) clock run on all 595's.
+ */
+void pcbhal_595_r_single_clock_run();
+
+/*
+ * @brief Enables SST mem chip (both: chip and its outputs).
+ */
+void pcbhal_sst_enable();
+
+/*
+ * @brief Disables SST mem chip (both: chip and its outputs).
+ */
+void pcbhal_sst_disable();
+
+/*
+ * @brief Turns 166 into load-mode (obtaining data from parallel inputs).
+ */
+void pcbhal_166_enter_loadmode();
+
+/*
+ * @brief Turns 166 into serial shift-mode
+ * (serial input active, shifting obtained data serially onto serial output)..
+ */
+void pcbhal_166_enter_shiftmode();
+
+/*
+ * @brief Runs single clock on 166.
+ */
+void pcbhal_166_single_clock_run();
+
+/*
+ * @brief Clears internal register of 166.
+ */
+void pcbhal_166_clear();
 
 #endif /* INCLUDE_PCBHAL_H_ */

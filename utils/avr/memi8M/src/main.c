@@ -12,6 +12,7 @@
 #include "Comm/comm.h"
 #include "usr_msg.h"
 #include "opts.h"
+#include "sst.h"
 
 //!< Maximum user input (in bytes) from comm
 #define MAX_USR_INPUT 8
@@ -34,8 +35,12 @@ int main(void)
     if(c_stat != COMM_SUCCESS)
         while(1); // stuck here forever
 
+    SSTInit(); // init mem interface
+
     for(;;)
     {
+        SSTRet();
+
         // display main menu
         c_stat = CommSendMsgsArrFromFlash(
                 &usr_msg_main_menu[0][0],

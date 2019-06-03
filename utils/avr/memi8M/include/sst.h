@@ -35,13 +35,32 @@ void SSTInit(void);
  * @param addr Address from which the data shall be read.
  * @param retbt A pointer where the read data shall be stored.
  *
+ * @attention
+ * Max addr is: 24 bit (assuming only 3 x 8-bit shift registers are present).
+ *
  * @returns sst_ec_t
  * @retval SST_SUCCESS Succeeded to read the data.
  * @retval SST_FAILED Critical error occured (data not read).
- * @retval SST_INVALID_INPUT Given addr is outside of acceptable range.
  */
 sst_ec_t SSTRead(
         uint32_t addr,
         uint8_t* retbt);
+
+/*
+ * @brief Writes byte of data to the given addr.
+ *
+ * @param addr Address to which the data will be written.
+ * @param writebt Data to be written.
+ *
+ * @attention
+ * Max addr is: 24 bit (assuming only 3 x 8-bit shift registers are present).
+ *
+ * @returns sst_ec_t
+ * @retval SST_SUCCESS Succeeded to read the data.
+ * @retval SST_FAILED Critical error occured (data not read).
+ */
+sst_ec_t SSTWrite(
+        uint32_t addr,
+        uint8_t writebt);
 
 #endif /* INCLUDE_SST_H_ */

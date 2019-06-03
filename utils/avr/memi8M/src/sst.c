@@ -8,9 +8,6 @@
 #include "pcbhal.h"
 #include "sst.h"
 
-/*
- * Read, write, erase functionality here.
- */
 
 void SSTRet(void)
 {
@@ -47,16 +44,82 @@ sst_ec_t SSTRead(
     if(retbt == NULL)
         return SST_FAILED;
 
-    if((addr > BOARD_MAX_ADDRESS) || (addr < BOARD_MIN_ADDRESS))
-        return SST_INVALID_INPUT;
+    pcbhal_595_clear();
+    pcbhal_166_clear();
 
-    // TODO:
-    // 1. load the addr onto shift registers
-    // 2. move data from shift registers to storage output registers
-    // 3. enable outputs
-    // 4. enable flash ic
-    // 5. read data from ic and store it to retbt
-    // 6. return pins to previous state
+    // 1. load addr onto shift regs
+    const uint8_t max_addr_bits = 24;
+    for(uint8_t i = 0; i < max_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(addr>>((max_addr_bits-1)-i))&0x01);
+        if(bit == 1)
+        {
+            pcbhal_si_ser_set();
+        }
+        else
+        {
+            pcbhal_si_ser_clear();
+        }
 
+        _delay_us(SI_SER_SETUPTIME_US);
+        pcbhal_595_sr_single_clock_run();
+    }
+
+    // 2. clock data to storage outputs registers
+    pcbhal_595_r_single_clock_run();
+
+    // 3. enable address regs outputs
+    pcbhal_595a_outs_enable();
+
+    // 4. enable flash chip
+    pcbhal_sst_enable();
+    _delay_us(SST_SETUPTIME_US); // wait for mem
+
+    // 5. Read data
+    pcbhal_4245_set_ba_outs_enable();
+    pcbhal_166_enter_loadmode();
+    const uint8_t data_bits = 8;
+    _delay_us(1.0f);
+    pcbhal_166_single_clock_run(); // load data onto 166 internal reg
+    pcbhal_166_enter_shiftmode();
+    _delay_us(1.0f);
+    // gain data
+    uint8_t gained_val = 0xBE;
+    // tip: QH pin is already showing us what's the MSB (QH) bit
+    for(uint8_t i = 0; i < data_bits; i++)
+    {
+        // read & store bit value
+        if(pcbhal_so_qh_get() == 0)
+        {
+            gained_val &= ~(1<<(7-i));
+        }
+        else
+        {
+            gained_val |= (1<<(7-i));
+        }
+
+        // shift for the next data
+        pcbhal_166_single_clock_run();
+    }
+
+    // 6. Return pins to previous state
+    pcbhal_si_ser_clear();
+    pcbhal_595a_outs_disable();
+    pcbhal_sst_disable();
+    pcbhal_4245_outs_disable();
+    pcbhal_166_enter_loadmode();
+    _delay_us(1.0f);
+
+    // 7. Return read data
+    *retbt = gained_val;
+
+    return SST_SUCCESS;
+}
+
+sst_ec_t SSTWrite(
+        uint32_t addr,
+        uint8_t writebt)
+{
+    // TODO: implement here!!!
     return SST_SUCCESS;
 }
