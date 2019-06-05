@@ -72,7 +72,8 @@ sst_ec_t SSTRead(
     pcbhal_595a_outs_enable();
 
     // 4. enable flash chip
-    pcbhal_sst_enable();
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_outs_enable();
     _delay_us(SST_SETUPTIME_US); // wait for mem
 
     // 5. Read data
@@ -105,7 +106,8 @@ sst_ec_t SSTRead(
     // 6. Return pins to previous state
     pcbhal_si_ser_clear();
     pcbhal_595a_outs_disable();
-    pcbhal_sst_disable();
+    pcbhal_sst_chip_disable();
+    pcbhal_sst_outs_disable();
     pcbhal_4245_outs_disable();
     pcbhal_166_enter_loadmode();
     _delay_us(1.0f);
@@ -116,10 +118,48 @@ sst_ec_t SSTRead(
     return SST_SUCCESS;
 }
 
+/*
+ * @brief Puts data (8-bit) and addr (24-bit) onto 595 chain.
+ *
+ * @param addr An addr under which the data shall be put. Only 24 bits are valid.
+ * @param data Data to be put under given addr.
+ */
+void SSTADPut(
+        uint32_t addr,
+        uint8_t data)
+{
+    addr &= ~(0xFF000000); // zero-out addr msb 8 bits, only 24 bits are valid now
+    uint32_t d_a = (((uint32_t)data)<<24) | addr; // data and addr concatenated into single var
+
+    const uint8_t max_bits = 32;
+    for(uint8_t i = 0; i < max_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(d_a>>((max_bits-1)-i))&0x01);
+        if(bit == 1)
+        {
+            pcbhal_si_ser_set();
+        }
+        else
+        {
+            pcbhal_si_ser_clear();
+        }
+
+        _delay_us(SI_SER_SETUPTIME_US);
+        pcbhal_595_sr_single_clock_run();
+    }
+
+    // reload
+    pcbhal_595_r_single_clock_run();
+    _delay_us(1.0f);
+}
+
 sst_ec_t SSTWrite(
         uint32_t addr,
         uint8_t writebt)
 {
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
     // TODO: implement here!!!
     return SST_SUCCESS;
 }

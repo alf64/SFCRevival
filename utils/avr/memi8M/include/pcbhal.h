@@ -360,14 +360,24 @@ void pcbhal_595_sr_single_clock_run();
 void pcbhal_595_r_single_clock_run();
 
 /*
- * @brief Enables SST mem chip (both: chip and its outputs).
+ * @brief Enables SST mem chip.
  */
-void pcbhal_sst_enable();
+void pcbhal_sst_chip_enable();
 
 /*
- * @brief Disables SST mem chip (both: chip and its outputs).
+ * @brief Disables SST mem chip.
  */
-void pcbhal_sst_disable();
+void pcbhal_sst_chip_disable();
+
+/*
+ * @brief Enables SST chip outputs.
+ */
+void pcbhal_sst_outs_enable();
+
+/*
+ * @brief Disables SST chip outputs.
+ */
+void pcbhal_sst_outs_disable();
 
 /*
  * @brief Turns 166 into load-mode (obtaining data from parallel inputs).

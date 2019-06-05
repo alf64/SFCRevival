@@ -83,15 +83,23 @@ void pcbhal_595_r_single_clock_run()
     pcbhal_si_rclk_toggle();
 }
 
-void pcbhal_sst_enable()
+void pcbhal_sst_chip_enable()
 {
     pcbhal_rom_ce_clear();
+}
+
+void pcbhal_sst_chip_disable()
+{
+    pcbhal_rom_ce_set();
+}
+
+void pcbhal_sst_outs_enable()
+{
     pcbhal_rom_oe_clear();
 }
 
-void pcbhal_sst_disable()
+void pcbhal_sst_outs_disable()
 {
-    pcbhal_rom_ce_set();
     pcbhal_rom_oe_set();
 }
 
