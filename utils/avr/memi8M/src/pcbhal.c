@@ -103,6 +103,24 @@ void pcbhal_sst_outs_disable()
     pcbhal_rom_oe_set();
 }
 
+void pcbhal_sst_write_enable()
+{
+    pcbhal_we_5v_set();
+}
+
+void pcbhal_sst_write_disable()
+{
+    pcbhal_we_5v_clear();
+}
+
+void pcbhal_sst_w_single_clock_run()
+{
+    pcbhal_we_5v_toggle();
+    _delay_us(SST_WE_LOW_TIME_US);
+    pcbhal_we_5v_toggle();
+    _delay_us(SST_WE_HIGH_TIME_US);
+}
+
 void pcbhal_166_enter_loadmode()
 {
     pcbhal_so_shld_clear();

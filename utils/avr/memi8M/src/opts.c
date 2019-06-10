@@ -220,14 +220,6 @@ opts_status_t OptsWriteBytes(
     usr_msg_status_t usrmsg_status = USR_MSG_INVALID_INPUT;
     for(uint32_t i = 0; i < bts; i++)
     {
-        // TODO: code for write bytes here
-        /*
-         * Ask user for byte - DONE
-         * Convert byte to u8 (only if byte was given as ascii) - DONE
-         * Write byte
-         * Send percentage progress ((i+1)/bts)*100
-         * Inform about write error if any occurs
-         */
         // try to get byte of data as long as user correctly inputs it
         do
         {
@@ -243,8 +235,10 @@ opts_status_t OptsWriteBytes(
             return OPTS_CRITICAL_ERR;
         }
 
-        // display number (index) of byte being written
-        // write byte to flash
+        SSTWrite(addr, writebt);
+
+        //TODO: HERE!!! Add UsrMsgDispPercProgress()
+
     }
 
     CommSendMsgFromFlash(

@@ -157,9 +157,37 @@ sst_ec_t SSTWrite(
         uint32_t addr,
         uint8_t writebt)
 {
+    // prepare flash chip
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
     pcbhal_595a_outs_enable();
     pcbhal_595d_outs_enable();
 
-    // TODO: implement here!!!
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_BYTE_PROG_CYCLE1_ADDR, SST_CMD_BYTE_PROG_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BYTE_PROG_CYCLE2_ADDR, SST_CMD_BYTE_PROG_CYCLE2_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BYTE_PROG_CYCLE3_ADDR, SST_CMD_BYTE_PROG_CYCLE3_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(addr, writebt);
+    pcbhal_sst_w_single_clock_run();
+
+    // get back to previous state
+    pcbhal_sst_chip_disable();
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+
     return SST_SUCCESS;
 }

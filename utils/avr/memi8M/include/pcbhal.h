@@ -286,6 +286,14 @@ static inline void pcbhal_we_5v_clear()
 }
 
 /*
+ * @brief Toggles the WE_5V.
+ */
+static inline void pcbhal_we_5v_toggle()
+{
+    UC_PORT2 ^= (1<<WE_5V);
+}
+
+/*
  * @brief Sets SO_QH to '1'.
  */
 static inline void pcbhal_so_qh_set()
@@ -378,6 +386,21 @@ void pcbhal_sst_outs_enable();
  * @brief Disables SST chip outputs.
  */
 void pcbhal_sst_outs_disable();
+
+/*
+ * @brief Turns sst mem into write-enable (read-disable).
+ */
+void pcbhal_sst_write_enable();
+
+/*
+ * @brief Turns sst mem into write-disable (read-enable).
+ */
+void pcbhal_sst_write_disable();
+
+/*
+ * @brief Does single w (write) clock run on sst mem.
+ */
+void pcbhal_sst_w_single_clock_run();
 
 /*
  * @brief Turns 166 into load-mode (obtaining data from parallel inputs).
