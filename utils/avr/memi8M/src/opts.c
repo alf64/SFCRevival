@@ -168,7 +168,8 @@ opts_status_t OptsReadBytes(
         {
             CommSendMsgFromFlash(
                     usr_msg_critical_err,
-                    (sizeof(usr_msg_critical_err)-1));
+                    (sizeof(usr_msg_critical_err)-1),
+                    1);
             return OPTS_CRITICAL_ERR;
         }
 
@@ -184,7 +185,8 @@ opts_status_t OptsReadBytes(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            (sizeof(usr_msg_job_done)-1));
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -243,7 +245,8 @@ opts_status_t OptsWriteBytes(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            (sizeof(usr_msg_job_done)-1));
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -344,7 +347,8 @@ opts_status_t OptsWriteAll(
 
     CommSendMsgFromFlash(
             usr_msg_all_data_prompt,
-            (sizeof(usr_msg_all_data_prompt)-1));
+            (sizeof(usr_msg_all_data_prompt)-1),
+            1);
     CommCleanMsgBuffer();
 
     uint8_t writebt = 0;
@@ -364,7 +368,8 @@ opts_status_t OptsWriteAll(
 
     CommSendMsgFromFlash(
             usr_msg_job_done,
-            (sizeof(usr_msg_job_done)-1));
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -514,7 +519,8 @@ opts_status_t OptsEraseAll(
 
     CommSendMsgFromFlash(
             usr_msg_eraseall_info,
-            (sizeof(usr_msg_eraseall_info)-1));
+            (sizeof(usr_msg_eraseall_info)-1),
+            1);
 
     uint8_t proceed;
     usr_msg_status_t usrmsg_status =
@@ -552,7 +558,8 @@ opts_status_t OptsCheckProdId(
 
     CommSendMsgFromFlash(
             usr_msg_check_prod_id_info,
-            (sizeof(usr_msg_check_prod_id_info)-1));
+            (sizeof(usr_msg_check_prod_id_info)-1),
+            1);
 
     uint8_t proceed;
     usr_msg_status_t usrmsg_status =

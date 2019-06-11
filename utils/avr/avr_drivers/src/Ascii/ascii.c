@@ -86,7 +86,7 @@ void bt_to_hex(
 
     for(uint8_t i = 0; i < 2; i++)
     {
-        part = ((bt >> (1-i)*4) & 0xF);
+        part = ((bt >> ((1-i)*4)) & 0xF);
         if((part >= 0xA) || (part <= 0xF))
         {
             offset = 'A';
@@ -104,7 +104,81 @@ void bt_to_hex(
     return;
 }
 
-ascii_status_t AsciiToU8(
+ascii_status_t U8ToDecAscii(
+        uint8_t input,
+        unsigned char* output,
+        uint8_t output_size)
+{
+    const uint8_t max_digits = 3; // digits range: 0 - 255
+
+    if(output == NULL)
+        return ASCII_FAILED;
+    if(output_size < (max_digits + 1))
+        return ASCII_FAILED;
+
+    uint8_t chr_num = 0;
+    uint8_t div = 0;
+    uint8_t conv = 0;
+    uint8_t zero_ascii = 0x30; // code for 0 in ascii
+    if(input > 99)
+    {
+        chr_num = 3;
+
+        // 1st digit
+        conv = input;
+        div = conv / 100;
+        output[0] = zero_ascii + div;
+
+        // 2nd digit
+        conv = conv - (div * 100);
+        div = conv / 10;
+        output[1] = zero_ascii + div;
+
+        // 3rd digit
+        conv = conv - (div * 10);
+        div = conv / 1;
+        output[2] = zero_ascii + div;
+    }
+    else if(input > 9)
+    {
+        chr_num = 2;
+
+        // 1st digit
+        conv = input;
+        div = conv / 10;
+        output[0] = zero_ascii + div;
+
+        // 2nd digit
+        conv = conv - (div * 10);
+        div = conv / 1;
+        output[1] = zero_ascii + div;
+    }
+    else // bt < 10
+    {
+        chr_num = 1;
+
+        conv = input;
+        div = conv / 1;
+        output[0] = zero_ascii + div;
+    }
+
+    // put nulls at the unused digits slots
+    if(chr_num < max_digits)
+    {
+        uint8_t pos_to_fill = max_digits - chr_num;
+        for(uint8_t i = 0; i < pos_to_fill; i++)
+        {
+            output[(chr_num + i)] = '\0';
+        }
+    }
+
+    // append NULL at the end of output
+    output[max_digits] = '\0';
+
+    return ASCII_SUCCESS;
+}
+
+ascii_status_t HexAsciiToU8(
         const unsigned char* input,
         uint8_t* output)
 {
@@ -126,7 +200,7 @@ ascii_status_t AsciiToU8(
     return status;
 }
 
-ascii_status_t U8ToAscii(
+ascii_status_t U8ToHexAscii(
         uint8_t input,
         unsigned char* output,
         uint8_t output_size)
@@ -143,7 +217,7 @@ ascii_status_t U8ToAscii(
     return ASCII_SUCCESS;
 }
 
-ascii_status_t AsciiToU32(
+ascii_status_t HexAsciiToU32(
         const unsigned char* input,
         uint32_t* output)
 {
@@ -174,7 +248,7 @@ ascii_status_t AsciiToU32(
     return status;
 }
 
-ascii_status_t U32ToAscii(
+ascii_status_t U32ToHexAscii(
         uint32_t input,
         unsigned char* output,
         uint8_t output_size)

@@ -62,6 +62,9 @@ comm_status_t CommInit(
  *
  * @param msg A pointer to a message.
  * @param msg_size A size (in bytes) of the message.
+ * @param nl A new-line flag.
+ * If nl > 0 then new-line character will be appended at the end of the message.
+ * If nl == 0 then there won't be new-line character appended.
  *
  * @attention
  * This function will only work properly if the CommInit() was performed before.
@@ -73,7 +76,8 @@ comm_status_t CommInit(
  */
 comm_status_t CommSendMsg(
         unsigned const char* msg,
-        uint8_t msg_size);
+        uint8_t msg_size,
+        uint8_t nl);
 
 /*
  * Same as CommSendMsg, but this one sends message that
@@ -81,7 +85,8 @@ comm_status_t CommSendMsg(
  */
 comm_status_t CommSendMsgFromFlash(
         const char* PROGMEM msg,
-        uint8_t msg_size);
+        uint8_t msg_size,
+        uint8_t nl);
 
 /*
  * Sends array of char messages located in program memory, via UART interface.

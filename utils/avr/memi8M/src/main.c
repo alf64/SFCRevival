@@ -55,7 +55,7 @@ int main(void)
         {
             c_stat = CommGetMsg(1, usr_input, sizeof(usr_input));
         } while(c_stat != COMM_SUCCESS);
-        CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1));
+        CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
 
         switch(usr_input[0])
         {
@@ -317,14 +317,15 @@ int main(void)
             }
             default:
             {
-                CommSendMsgFromFlash(usr_msg_unsupported_sel, (sizeof(usr_msg_unsupported_sel)-1));
+                CommSendMsgFromFlash(usr_msg_unsupported_sel, (sizeof(usr_msg_unsupported_sel)-1), 1);
                 break;
             }
         }
 
         CommSendMsgFromFlash(
                 usr_msg_prog_to_restart,
-                (sizeof(usr_msg_prog_to_restart)-1));
+                (sizeof(usr_msg_prog_to_restart)-1),
+                1);
         uint8_t proceed = 0;
         usr_msg_status_t usrmsg_status =
                 UsrMsgAskForProceed(usr_input, sizeof(usr_input), &proceed);
@@ -338,7 +339,8 @@ int main(void)
             {
                 CommSendMsgFromFlash(
                         usr_msg_system_halted,
-                        (sizeof(usr_msg_system_halted)-1));
+                        (sizeof(usr_msg_system_halted)-1),
+                        1);
                 while(1){};; // user said no, halt forever
             }
             // do nothing, restarting the program main loop

@@ -16,7 +16,28 @@ typedef enum _ascii_status_t
 }ascii_status_t;
 
 /*
- * @brief Function converts char (ascii) to uint8_t.
+ * @brief Function converts uint8_t to decimal char (ascii).
+ *
+ * @param input An uint8_t to be converted.
+ * @param output A char array where the conversion result shall be stored.
+ * @param output_size A size (in bytes) of the given output array.
+ * output_size shall be at least of size: 4 bytes (3 for actual data, 1 for '\0' appending purposes).
+ *
+ * @attention
+ * This function appends NULL ('\0') at the offset 0x3 of the given output array.
+ * If the resulting ascii output holds less than 3 digits, the empty chars are filled with '\0'.
+ *
+ * @returns ascii_status_t
+ * @retval ASCII_SUCCESS If succeeded to perform conversion.
+ * @retval ASCII_FAILED If failed to perform conversion.
+ */
+ascii_status_t U8ToDecAscii(
+        uint8_t input,
+        unsigned char* output,
+        uint8_t output_size);
+
+/*
+ * @brief Function converts hex char (ascii) to uint8_t.
  *
  * @details
  * This function can be easily used to convert hex
@@ -33,12 +54,12 @@ typedef enum _ascii_status_t
  *
  * @returns ascii_status_t
  */
-ascii_status_t AsciiToU8(
+ascii_status_t HexAsciiToU8(
         const unsigned char* input,
         uint8_t* output);
 
 /*
- * @brief Function converts uint8_t to char (ascii).
+ * @brief Function converts uint8_t to hex char (ascii).
  *
  * @param input An uint8_t to be converted.
  * @param output A char array where the conversion result shall be stored.
@@ -46,19 +67,19 @@ ascii_status_t AsciiToU8(
  * output_size shall be at least of size: 3 bytes (2 for actual data, 1 for '\0' appending purposes).
  *
  * @attention
- * This function appends NULL ('\0;) at the end of the given output array.
+ * This function appends NULL ('\0') at the end of the given output array.
  *
  * @returns ascii_status_t
  * @retval ASCII_SUCCESS If succeeded to perform conversion.
  * @retval ASCII_FAILED If failed to perform conversion.
  */
-ascii_status_t U8ToAscii(
+ascii_status_t U8ToHexAscii(
         uint8_t input,
         unsigned char* output,
         uint8_t output_size);
 
 /*
- * @brief Function converts char (ascii) to uint32_t.
+ * @brief Function converts hex char (ascii) to uint32_t.
  *
  * @details
  * This function can be easily used to convert hex
@@ -75,12 +96,12 @@ ascii_status_t U8ToAscii(
  *
  * @returns ascii_status_t
  */
-ascii_status_t AsciiToU32(
+ascii_status_t HexAsciiToU32(
         const unsigned char* input,
         uint32_t* output);
 
 /*
- * @brief Function converts uint32_t to char (ascii).
+ * @brief Function converts uint32_t to hex char (ascii).
  *
  * @param input An uint32_t to be converted.
  * @param output A char array where the conversion result shall be stored.
@@ -88,13 +109,13 @@ ascii_status_t AsciiToU32(
  * output_size shall be at least of size: 9 bytes (8 for actual data, 1 for '\0' appending purposes).
  *
  * @attention
- * This function appends NULL ('\0;) at the end of the given output array.
+ * This function appends NULL ('\0') at the end of the given output array.
  *
  * @returns ascii_status_t
  * @retval ASCII_SUCCESS If succeeded to perform conversion.
  * @retval ASCII_FAILED If failed to perform conversion.
  */
-ascii_status_t U32ToAscii(
+ascii_status_t U32ToHexAscii(
         uint32_t input,
         unsigned char* output,
         uint8_t output_size);

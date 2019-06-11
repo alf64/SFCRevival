@@ -397,11 +397,11 @@ usr_msg_status_t UsrMsgDispProdIdAsAscii(
         uint8_t workbuff_size);
 
 /*
- * @brief Displays percentage progress to user via comm.
+ * @brief Displays progress to user via comm.
  *
  * @details
- * This function takes current value, compares it across limit, converts the result
- * into percentage progress and sends it via comm.
+ * This function takes current and limit value, converts them into decimal ascii and sends
+ * appropriate information to user via comm.
  *
  * @param bts current A current value.
  * @param limit A limit value.
@@ -409,18 +409,18 @@ usr_msg_status_t UsrMsgDispProdIdAsAscii(
  * - u32 to decimal ascii conversion purposes
  * - displaying the message via comm
  * @param workbuff_size A size (in bytes) of the given workbuff.
- * This shall be no less than 3.
+ * This shall be no less than 11.
  *
  * @returns usr_msg_status_t
  * @retval USR_MSG_SUCCESS Means the function succeeded to display the bts.
+ * @retval USR_MSG_INVALID_INPUT Invalid input arguments were given.
  * @retval USR_MSG_FAILED Means the critical error occurred.
  */
-usr_msg_status_t UsrMsgDispPercProgress(
+usr_msg_status_t UsrMsgDispProgress(
         uint32_t current,
         uint32_t limit,
         unsigned char* workbuff,
         uint8_t workbuff_size);
-
 
 /*
  * @brief Checks the sanity of the addr and bts.

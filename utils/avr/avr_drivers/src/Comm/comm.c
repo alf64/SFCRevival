@@ -52,9 +52,9 @@ comm_status_t CommInit(
     }
 
     if(init_msg == NULL)
-        CommSendMsgFromFlash(defaultmsg, (sizeof(defaultmsg)-1));
+        CommSendMsgFromFlash(defaultmsg, (sizeof(defaultmsg)-1), 1);
     else
-        CommSendMsg(init_msg, init_msg_size);
+        CommSendMsg(init_msg, init_msg_size, 1);
 
     return status;
 }
@@ -62,7 +62,8 @@ comm_status_t CommInit(
 
 comm_status_t CommSendMsg(
         unsigned const char* msg,
-        uint8_t msg_size)
+        uint8_t msg_size,
+        uint8_t nl)
 {
     comm_status_t status = COMM_SUCCESS;
 
@@ -74,15 +75,19 @@ comm_status_t CommSendMsg(
         UsartTransmit((uint8_t)msg[i]);
     }
 
-    // transmit new line character
-    UsartTransmit(0x0a);
+    if(nl)
+    {
+        // transmit new line character
+        UsartTransmit(0x0a);
+    }
 
     return status;
 }
 
 comm_status_t CommSendMsgFromFlash(
         const char* PROGMEM msg,
-        uint8_t msg_size)
+        uint8_t msg_size,
+        uint8_t nl)
 {
     comm_status_t status = COMM_SUCCESS;
 
@@ -94,8 +99,11 @@ comm_status_t CommSendMsgFromFlash(
         UsartTransmit((uint8_t)pgm_read_byte(&msg[i]));
     }
 
-    // transmit new line character
-    UsartTransmit(0x0a);
+    if(nl)
+    {
+        // transmit new line character
+        UsartTransmit(0x0a);
+    }
 
     return status;
 }
