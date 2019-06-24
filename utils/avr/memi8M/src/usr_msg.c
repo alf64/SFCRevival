@@ -113,6 +113,15 @@ const char usr_msg_data_ascii_prompt[43] PROGMEM = {
 const char usr_msg_data_raw_prompt[26] PROGMEM = {
         "Provide data (raw byte): "
 };
+const char usr_msg_progress_info_1[] PROGMEM = {
+        "Progress: "
+};
+const char usr_msg_progress_info_2[] PROGMEM = {
+        " out of "
+};
+const char usr_msg_progress_info_3[] PROGMEM = {
+        " done. Left:"
+};
 // --------------------------------------------
 
 //!< ----- Infos for read & write all -----
@@ -704,7 +713,78 @@ usr_msg_status_t UsrMsgDispProgress(
     if(current > limit)
         return USR_MSG_INVALID_INPUT;
 
-    // TODO: convert current to hex ascii
+    ascii_status_t ascii_status = U32ToHexAscii(
+            current,
+            workbuff,
+            workbuff_size);
+    if(ascii_status != ASCII_SUCCESS)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                (sizeof(usr_msg_critical_err)-1),
+                1);
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        CommSendMsgFromFlash(
+                usr_msg_progress_info_1,
+                (sizeof(usr_msg_progress_info_1)-1),
+                0);
+        CommSendMsg(
+                workbuff,
+                8,
+                0);
+    }
+
+    ascii_status = U32ToHexAscii(
+            limit,
+            workbuff,
+            workbuff_size);
+    if(ascii_status != ASCII_SUCCESS)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                (sizeof(usr_msg_critical_err)-1),
+                1);
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        CommSendMsgFromFlash(
+                usr_msg_progress_info_2,
+                (sizeof(usr_msg_progress_info_2)-1),
+                0);
+        CommSendMsg(
+                workbuff,
+                8,
+                0);
+    }
+
+    uint32_t left = limit - current;
+    ascii_status = U32ToHexAscii(
+            left,
+            workbuff,
+            workbuff_size);
+    if(ascii_status != ASCII_SUCCESS)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                (sizeof(usr_msg_critical_err)-1),
+                1);
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        CommSendMsgFromFlash(
+                usr_msg_progress_info_3,
+                (sizeof(usr_msg_progress_info_3)-1),
+                0);
+        CommSendMsg(
+                workbuff,
+                8,
+                1);
+    }
 
     return USR_MSG_SUCCESS;
 }

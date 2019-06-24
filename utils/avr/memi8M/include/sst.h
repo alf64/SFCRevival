@@ -63,4 +63,28 @@ sst_ec_t SSTWrite(
         uint32_t addr,
         uint8_t writebt);
 
+/*
+ * @brief Erases sector of memory.
+ *
+ * @param sector_addr An address of the sector to be erased.
+ * This shall not be higher than BOARD_MAX_SECTOR_ADDR.
+ *
+ * @retval sst_ec_t
+ * @retval SST_SUCCESS Succeeded to erase the sector.
+ * @retval SST_INVALID_INPUT Means invalid sector_addr was given.
+ */
+sst_ec_t SSTEraseSector(uint32_t sector_addr);
+
+/*
+ * @brief Erases block of memory.
+ *
+ * @param block_addr An address of the block to be erased.
+ * This shall not be higher than BOARD_MAX_BLOCK_ADDR.
+ *
+ * @retval sst_ec_t
+ * @retval SST_SUCCESS Succeeded to erase the block.
+ * @retval SST_INVALID_INPUT Means invalid block_addr was given.
+ */
+sst_ec_t SSTEraseBlock(uint32_t block_addr);
+
 #endif /* INCLUDE_SST_H_ */

@@ -239,7 +239,16 @@ opts_status_t OptsWriteBytes(
 
         SSTWrite(addr, writebt);
 
-        //TODO: HERE!!! Add UsrMsgDispPercProgress()
+        usrmsg_status =
+                UsrMsgDispProgress(
+                        (i+1),
+                        bts,
+                        out_buff,
+                        out_buff_size);
+        if(usrmsg_status != USR_MSG_SUCCESS)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
 
     }
 
@@ -292,14 +301,15 @@ opts_status_t OptsReadAll(
     uint8_t readbt = 0;
     for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
     {
-        /*
-         * TODO: code for read bytes here
-         * use following:
-         * addr - BOARD_MIN_ADDRESS
-         * bts - BOARD_SPACE_CAPACITY
-         * Inform about read error if any occurs
-         */
-        // readbt = ReadByte(addr+i)
+        sst_ec_t sst_status = SSTRead(i, &readbt);
+        if(sst_status != SST_SUCCESS)
+        {
+            CommSendMsgFromFlash(
+                    usr_msg_critical_err,
+                    (sizeof(usr_msg_critical_err)-1),
+                    1);
+            return OPTS_CRITICAL_ERR;
+        }
 
         CommSendBytes(&readbt, 1); // give raw bytes to usr
     }
@@ -355,15 +365,7 @@ opts_status_t OptsWriteAll(
     for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
     {
         while(CommGetMsg(sizeof(writebt), &writebt, sizeof(writebt)) != COMM_SUCCESS);
-
-        /*
-         * TODO: code for write bytes here
-         * use following:
-         * addr - BOARD_MIN_ADDRESS
-         * bts - BOARD_SPACE_CAPACITY
-         * Inform about read error if any occurs
-         */
-        // WriteByte(addr+i)
+        SSTWrite(i, writebt);
     }
 
     CommSendMsgFromFlash(

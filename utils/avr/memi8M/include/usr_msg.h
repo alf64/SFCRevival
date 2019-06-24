@@ -400,16 +400,16 @@ usr_msg_status_t UsrMsgDispProdIdAsAscii(
  * @brief Displays progress to user via comm.
  *
  * @details
- * This function takes current and limit value, converts them into decimal ascii and sends
+ * This function takes current and limit value, converts them into hex ascii and sends
  * appropriate information to user via comm.
  *
  * @param bts current A current value.
  * @param limit A limit value.
  * @param workbuff A pointer to a work buffer which is needed by this function for:
- * - u32 to decimal ascii conversion purposes
+ * - u32 to hex ascii conversion purposes
  * - displaying the message via comm
  * @param workbuff_size A size (in bytes) of the given workbuff.
- * This shall be no less than 11.
+ * This shall be no less than 9.
  *
  * @returns usr_msg_status_t
  * @retval USR_MSG_SUCCESS Means the function succeeded to display the bts.

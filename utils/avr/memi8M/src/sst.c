@@ -182,6 +182,114 @@ sst_ec_t SSTWrite(
     SSTADPut(addr, writebt);
     pcbhal_sst_w_single_clock_run();
 
+    _delay_us(SST_BYTE_PROGRAM_TIME_US);
+
+    // get back to previous state
+    pcbhal_sst_chip_disable();
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+
+    return SST_SUCCESS;
+}
+
+sst_ec_t SSTEraseSector(uint32_t sector_addr)
+{
+    if((sector_addr > BOARD_MAX_SECTOR_ADDRESS) || (sector_addr < BOARD_MIN_SECTOR_ADDRESS))
+    {
+        return SST_INVALID_INPUT;
+    }
+
+    // get actual address, since bits A20-A12 are treated as sector address
+    uint32_t s_addr = sector_addr << 12;
+
+    // prepare flash chip
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_SEC_ERASE_CYCLE1_ADDR, SST_CMD_SEC_ERASE_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SEC_ERASE_CYCLE2_ADDR, SST_CMD_SEC_ERASE_CYCLE2_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SEC_ERASE_CYCLE3_ADDR, SST_CMD_SEC_ERASE_CYCLE3_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SEC_ERASE_CYCLE4_ADDR, SST_CMD_SEC_ERASE_CYCLE4_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SEC_ERASE_CYCLE5_ADDR, SST_CMD_SEC_ERASE_CYCLE5_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(s_addr, SST_CMD_SEC_ERASE_CYCLE6_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    _delay_ms(SST_SECTOR_ERASE_TIME_MS);
+
+    // get back to previous state
+    pcbhal_sst_chip_disable();
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+
+    return SST_SUCCESS;
+}
+
+sst_ec_t SSTEraseBlock(uint32_t block_addr)
+{
+    if((block_addr > BOARD_MAX_BLOCK_ADDRESS) || (block_addr < BOARD_MIN_BLOCK_ADDRESS))
+    {
+        return SST_INVALID_INPUT;
+    }
+
+    // get actual address, since bits A20-A16 are treated as block address
+    uint32_t b_addr = block_addr << 16;
+
+    // prepare flash chip
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_BLOCK_ERASE_CYCLE1_ADDR, SST_CMD_BLOCK_ERASE_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BLOCK_ERASE_CYCLE2_ADDR, SST_CMD_BLOCK_ERASE_CYCLE2_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BLOCK_ERASE_CYCLE3_ADDR, SST_CMD_BLOCK_ERASE_CYCLE3_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BLOCK_ERASE_CYCLE4_ADDR, SST_CMD_BLOCK_ERASE_CYCLE4_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_BLOCK_ERASE_CYCLE5_ADDR, SST_CMD_BLOCK_ERASE_CYCLE5_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(b_addr, SST_CMD_BLOCK_ERASE_CYCLE6_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    _delay_ms(SST_BLOCK_ERASE_TIME_MS);
+
     // get back to previous state
     pcbhal_sst_chip_disable();
     pcbhal_sst_write_disable();
