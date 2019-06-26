@@ -81,6 +81,12 @@
  * Doc says it can be up to 10us.
  */
 #define SST_BYTE_PROGRAM_TIME_US 11
+
+/*
+ * Software ID Access and Exit time.
+ * Doc says 150ns.
+ */
+#define SST_SW_ID_ACCESS_EXIT_TIME_US 1
 // --------------------------
 
 // ----- commands constants -----

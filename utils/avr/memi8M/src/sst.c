@@ -299,3 +299,239 @@ sst_ec_t SSTEraseBlock(uint32_t block_addr)
 
     return SST_SUCCESS;
 }
+
+void SSTEraseChip(void)
+{
+    // prepare flash chip
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE1_ADDR, SST_CMD_CHIP_ERASE_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE2_ADDR, SST_CMD_CHIP_ERASE_CYCLE2_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE3_ADDR, SST_CMD_CHIP_ERASE_CYCLE3_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE4_ADDR, SST_CMD_CHIP_ERASE_CYCLE4_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE5_ADDR, SST_CMD_CHIP_ERASE_CYCLE5_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_CHIP_ERASE_CYCLE6_ADDR, SST_CMD_CHIP_ERASE_CYCLE6_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    _delay_ms(SST_CHIP_ERASE_TIME_MS);
+
+    // get back to previous state
+    pcbhal_sst_chip_disable();
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+}
+
+/*
+ * @brief Turns chip into Software ID mode.
+ */
+void SSTSwIdEntry(void)
+{
+    // prepare flash chip
+    pcbhal_sst_chip_enable();
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_SW_ID_ENTRY_CYCLE1_ADDR, SST_CMD_SW_ID_ENTRY_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SW_ID_ENTRY_CYCLE2_ADDR, SST_CMD_SW_ID_ENTRY_CYCLE2_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    SSTADPut(SST_CMD_SW_ID_ENTRY_CYCLE3_ADDR, SST_CMD_SW_ID_ENTRY_CYCLE3_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    _delay_us(SST_SW_ID_ACCESS_EXIT_TIME_US);
+
+    // back to previous state, except switching off the sst!
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+}
+
+/*
+ * @brief Exits chip from Software ID mode.
+ * @details
+ * Advise: disabling sst chip also exits software id mode.
+ */
+void SSTSwIdExit(void)
+{
+    // assuming sst chip is enabled
+    pcbhal_sst_write_enable();
+
+    // prepare shift regs
+    pcbhal_595_clear();
+    pcbhal_595a_outs_enable();
+    pcbhal_595d_outs_enable();
+
+    // prepare 4245
+    pcbhal_4245_set_ab_outs_enable();
+    _delay_us(1.0f);
+
+    SSTADPut(SST_CMD_SW_ID_EXIT_CYCLE1_ADDR, SST_CMD_SW_ID_EXIT_CYCLE1_DATA);
+    pcbhal_sst_w_single_clock_run();
+
+    _delay_us(SST_SW_ID_ACCESS_EXIT_TIME_US);
+
+    // get back to previous state
+    pcbhal_sst_chip_disable(); // switch off sst
+    pcbhal_sst_write_disable();
+    pcbhal_595a_outs_disable();
+    pcbhal_595d_outs_disable();
+    pcbhal_4245_outs_disable();
+}
+
+sst_prod_id_t SSTReadProdId(void)
+{
+    sst_prod_id_t prod_id = {0,0};
+    const uint32_t man_id_addr = MEM_MANUFACTURER_ID_ADDRESS;
+    const uint32_t dev_id_addr = MEM_DEVICE_ID_ADDRESS;
+
+    SSTSwIdEntry();
+
+    pcbhal_595_clear();
+    pcbhal_166_clear();
+
+    // 1. load man_id_addr onto shift regs
+    const uint8_t max_addr_bits = 24;
+    for(uint8_t i = 0; i < max_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(man_id_addr>>((max_addr_bits-1)-i))&0x01);
+        if(bit == 1)
+        {
+            pcbhal_si_ser_set();
+        }
+        else
+        {
+            pcbhal_si_ser_clear();
+        }
+
+        _delay_us(SI_SER_SETUPTIME_US);
+        pcbhal_595_sr_single_clock_run();
+    }
+
+    // 2. clock data to storage outputs registers
+    pcbhal_595_r_single_clock_run();
+
+    // 3. enable address regs outputs
+    pcbhal_595a_outs_enable();
+
+    // 4. enable flash chip outputs
+    pcbhal_sst_outs_enable();
+    _delay_us(SST_SETUPTIME_US); // wait for mem
+
+    // 5. Read man_id
+    pcbhal_4245_set_ba_outs_enable();
+    pcbhal_166_enter_loadmode();
+    const uint8_t data_bits = 8;
+    _delay_us(1.0f);
+    pcbhal_166_single_clock_run(); // load data onto 166 internal reg
+    _delay_us(1.0f);
+    pcbhal_166_enter_shiftmode();
+    _delay_us(1.0f);
+    // gain data, tip: QH pin is already showing us what's the MSB (QH) bit
+    for(uint8_t i = 0; i < data_bits; i++)
+    {
+        // read & store bit value
+        if(pcbhal_so_qh_get() == 0)
+        {
+            prod_id.man_id &= ~(1<<(7-i));
+        }
+        else
+        {
+            prod_id.man_id |= (1<<(7-i));
+        }
+
+        // shift for the next data
+        pcbhal_166_single_clock_run();
+    }
+
+    // 6. load dev_id_addr onto shift regs
+    for(uint8_t i = 0; i < max_addr_bits; i++)
+    {
+        uint8_t bit = ((uint8_t)(dev_id_addr>>((max_addr_bits-1)-i))&0x01);
+        if(bit == 1)
+        {
+            pcbhal_si_ser_set();
+        }
+        else
+        {
+            pcbhal_si_ser_clear();
+        }
+
+        _delay_us(SI_SER_SETUPTIME_US);
+        pcbhal_595_sr_single_clock_run();
+    }
+
+    // 7. clock data to storage outputs registers.
+    pcbhal_595_r_single_clock_run();
+
+    // 595a and sst outs are enabled, wait for sst to setup new out value
+    _delay_us(SST_SETUPTIME_US);
+
+    // 8. Read dev_id
+    pcbhal_166_enter_loadmode();
+    _delay_us(1.0f);
+    pcbhal_166_single_clock_run(); // load data onto 166 internal reg
+    _delay_us(1.0f);
+    pcbhal_166_enter_shiftmode();
+    _delay_us(1.0f);
+    // gain data, tip: QH pin is already showing us what's the MSB (QH) bit
+    for(uint8_t i = 0; i < data_bits; i++)
+    {
+        // read & store bit value
+        if(pcbhal_so_qh_get() == 0)
+        {
+            prod_id.dev_id &= ~(1<<(7-i));
+        }
+        else
+        {
+            prod_id.dev_id |= (1<<(7-i));
+        }
+
+        // shift for the next data
+        pcbhal_166_single_clock_run();
+    }
+
+    // 9. Return pins to previous state
+    pcbhal_si_ser_clear();
+    pcbhal_595a_outs_disable();
+    pcbhal_sst_outs_disable();
+    pcbhal_4245_outs_disable();
+    pcbhal_166_enter_loadmode();
+    _delay_us(1.0f);
+
+    SSTSwIdExit();
+
+    return prod_id;
+}

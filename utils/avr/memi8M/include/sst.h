@@ -19,6 +19,12 @@ typedef enum
     SST_INVALID_INPUT = 2
 }sst_ec_t;
 
+typedef struct
+{
+    uint8_t man_id;
+    uint8_t dev_id;
+}sst_prod_id_t;
+
 /*
  * @brief Returns pcb to initial state (sets default pin values).
  */
@@ -86,5 +92,17 @@ sst_ec_t SSTEraseSector(uint32_t sector_addr);
  * @retval SST_INVALID_INPUT Means invalid block_addr was given.
  */
 sst_ec_t SSTEraseBlock(uint32_t block_addr);
+
+/*
+ * @brief Erases chip.
+ */
+void SSTEraseChip(void);
+
+/*
+ * @brief Reads SST product id information.
+ *
+ * @returns sst_prod_id_t Product id structure with read information fields.
+ */
+sst_prod_id_t SSTReadProdId(void);
 
 #endif /* INCLUDE_SST_H_ */
