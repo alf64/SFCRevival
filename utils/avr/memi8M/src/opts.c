@@ -433,13 +433,16 @@ opts_status_t OptsEraseSector(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    /*
-     * Up to this point you have valid sector_addr.
-     * TODO: erase sector from mem
-     * Important: Ams - A12 address lines of the mem are the drives for sector addr,
-     * so shift sector_addr left by 12
-     * In fact it is a normal addr now after shifting, with A11 - A0 zeroed-out
-     */
+    sst_ec_t sst_status = SSTEraseSector(sector_addr);
+    if(sst_status != SST_SUCCESS)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_job_done,
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -501,13 +504,16 @@ opts_status_t OptsEraseBlock(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    /*
-     * Up to this point you have valid block_addr.
-     * TODO: erase block from mem
-     * Important: Ams - A16 address lines of the mem are the drives for block addr,
-     * so shift block_addr left by 16
-     * In fact it is a normal addr now after shifting, with A15 - A0 zeroed-out
-     */
+    sst_ec_t sst_status = SSTEraseBlock(block_addr);
+    if(sst_status != SST_SUCCESS)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_job_done,
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -542,9 +548,12 @@ opts_status_t OptsEraseAll(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    /*
-     * TODO: perform erase-chip here
-     */
+    SSTEraseChip();
+
+    CommSendMsgFromFlash(
+            usr_msg_job_done,
+            (sizeof(usr_msg_job_done)-1),
+            1);
 
     return OPTS_SUCCESS;
 }
@@ -581,21 +590,12 @@ opts_status_t OptsCheckProdId(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    uint8_t man_id = 0; // manufacturer id
-    uint8_t dev_id = 0; // device id
-    /*
-     * TODO:
-     * 1. Perform Software ID Entry command
-     * 2. Read Manufacturer's ID
-     * 3. Read Device ID
-     * 4. Perform Software ID Exit command (returns to Read Mode)
-     */
-    // ReadProdId(&manid, &devid)
+    sst_prod_id_t prod_id = SSTReadProdId();
 
     usrmsg_status =
             UsrMsgDispProdIdAsAscii(
-                    man_id,
-                    dev_id,
+                    prod_id.man_id,
+                    prod_id.dev_id,
                     out_buff,
                     out_buff_size);
     if(usrmsg_status == USR_MSG_FAILED)
@@ -603,8 +603,8 @@ opts_status_t OptsCheckProdId(
 
     usrmsg_status =
             UsrMsgProdIdCheck(
-                    man_id,
-                    dev_id);
+                    prod_id.man_id,
+                    prod_id.dev_id);
     if(usrmsg_status == USR_MSG_INVALID_INPUT)
         return OPTS_NEED_RETRY;
 
