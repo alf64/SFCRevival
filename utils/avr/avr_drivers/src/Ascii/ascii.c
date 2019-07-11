@@ -87,7 +87,7 @@ void bt_to_hex(
     for(uint8_t i = 0; i < 2; i++)
     {
         part = ((bt >> ((1-i)*4)) & 0xF);
-        if((part >= 0xA) || (part <= 0xF))
+        if((part >= 0xA) && (part <= 0xF))
         {
             offset = 'A';
             offdiff = part - 0xA;
