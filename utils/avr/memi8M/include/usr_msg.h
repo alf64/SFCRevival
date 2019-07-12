@@ -79,6 +79,8 @@ extern const char usr_msg_data_format_ascii[6] PROGMEM;
 extern const char usr_msg_data_format_bytes[6] PROGMEM;
 extern const char usr_msg_data_ascii_prompt[43] PROGMEM;
 extern const char usr_msg_data_raw_prompt[26] PROGMEM;
+extern const char usr_msg_read_data_info[15] PROGMEM;
+extern const char usr_msg_write_data_atten[83] PROGMEM;
 
 //!< ----- Infos for read & write all -----
 extern const char usr_msg_readall_info[215] PROGMEM;

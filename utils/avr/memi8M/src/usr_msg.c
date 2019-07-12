@@ -120,7 +120,13 @@ const char usr_msg_progress_info_2[] PROGMEM = {
         " out of "
 };
 const char usr_msg_progress_info_3[] PROGMEM = {
-        " done. Left:"
+        " done. Left: "
+};
+const char usr_msg_read_data_info[15] PROGMEM = {
+        "Read data is: "
+};
+const char usr_msg_write_data_atten[83] PROGMEM = {
+        "Attention! For write to take effect, make sure you have erased flash memory first."
 };
 // --------------------------------------------
 

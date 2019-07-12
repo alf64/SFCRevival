@@ -160,6 +160,11 @@ opts_status_t OptsReadBytes(
     if(opts_status != OPTS_SUCCESS)
         return opts_status;
 
+    CommSendMsgFromFlash(
+            usr_msg_read_data_info,
+            (sizeof(usr_msg_read_data_info)-1),
+            0);
+
     uint8_t readbt = 0;
     for(uint32_t i = 0; i < bts; i++)
     {
@@ -183,6 +188,7 @@ opts_status_t OptsReadBytes(
         }
     }
 
+    CommSendMsg((unsigned const char*)"\n", 1, 0);
     CommSendMsgFromFlash(
             usr_msg_job_done,
             (sizeof(usr_msg_job_done)-1),
@@ -217,6 +223,11 @@ opts_status_t OptsWriteBytes(
                     &fmt);
     if(opts_status != OPTS_SUCCESS)
         return opts_status;
+
+    CommSendMsgFromFlash(
+            usr_msg_write_data_atten,
+            (sizeof(usr_msg_write_data_atten)-1),
+            1);
 
     uint8_t writebt = 0;
     usr_msg_status_t usrmsg_status = USR_MSG_INVALID_INPUT;
