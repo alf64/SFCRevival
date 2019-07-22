@@ -424,7 +424,6 @@ usr_msg_status_t UsrMsgAskForProceed(
             1);
     CommCleanMsgBuffer();
     while(CommGetMsg(1, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
-    CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
 
     if((usr_input_buff[0] != 'y') && (usr_input_buff[0] != 'n')
             && (usr_input_buff[0] != 'Y') && (usr_input_buff[0] != 'N'))
