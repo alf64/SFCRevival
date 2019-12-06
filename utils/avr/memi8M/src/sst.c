@@ -19,7 +19,6 @@ void SSTRet(void)
     pcbhal_so_clk_clear();
     pcbhal_data_dir_clear();
     pcbhal_so_qh_clear();
-    pcbhal_we_5v_clear();
 
     // set appropriate pins
     pcbhal_si_srclr_set(); // addr and data shift regs out of clear
@@ -29,6 +28,7 @@ void SSTRet(void)
     pcbhal_data_oe_set(); // 4245 outputs disable
     pcbhal_rom_oe_set(); // mem outputs disable
     pcbhal_rom_ce_set(); // mem chip disable
+    pcbhal_we_5v_set(); // mem chip write-disable
 }
 
 void SSTInit(void)

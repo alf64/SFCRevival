@@ -105,12 +105,12 @@ void pcbhal_sst_outs_disable()
 
 void pcbhal_sst_write_enable()
 {
-    pcbhal_we_5v_set();
+    pcbhal_we_5v_clear();
 }
 
 void pcbhal_sst_write_disable()
 {
-    pcbhal_we_5v_clear();
+    pcbhal_we_5v_set();
 }
 
 void pcbhal_sst_w_single_clock_run()
