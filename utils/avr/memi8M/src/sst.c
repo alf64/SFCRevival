@@ -128,7 +128,7 @@ void SSTADPut(
         uint32_t addr,
         uint8_t data)
 {
-    addr &= ~(0xFF000000); // zero-out addr msb 8 bits, only 24 bits are valid now
+    addr &= ~(0xFF000000ul); // zero-out addr msb 8 bits, only 24 bits are valid now
     uint32_t d_a = (((uint32_t)data)<<24) | addr; // data and addr concatenated into single var
 
     const uint8_t max_bits = 32;
@@ -159,7 +159,6 @@ sst_ec_t SSTWrite(
 {
     // prepare flash chip
     pcbhal_sst_chip_enable();
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -186,7 +185,6 @@ sst_ec_t SSTWrite(
 
     // get back to previous state
     pcbhal_sst_chip_disable();
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
@@ -206,7 +204,6 @@ sst_ec_t SSTEraseSector(uint32_t sector_addr)
 
     // prepare flash chip
     pcbhal_sst_chip_enable();
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -239,7 +236,6 @@ sst_ec_t SSTEraseSector(uint32_t sector_addr)
 
     // get back to previous state
     pcbhal_sst_chip_disable();
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
@@ -259,7 +255,6 @@ sst_ec_t SSTEraseBlock(uint32_t block_addr)
 
     // prepare flash chip
     pcbhal_sst_chip_enable();
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -292,7 +287,6 @@ sst_ec_t SSTEraseBlock(uint32_t block_addr)
 
     // get back to previous state
     pcbhal_sst_chip_disable();
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
@@ -304,7 +298,6 @@ void SSTEraseChip(void)
 {
     // prepare flash chip
     pcbhal_sst_chip_enable();
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -337,7 +330,6 @@ void SSTEraseChip(void)
 
     // get back to previous state
     pcbhal_sst_chip_disable();
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
@@ -350,7 +342,6 @@ void SSTSwIdEntry(void)
 {
     // prepare flash chip
     pcbhal_sst_chip_enable();
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -373,7 +364,6 @@ void SSTSwIdEntry(void)
     _delay_us(SST_SW_ID_ACCESS_EXIT_TIME_US);
 
     // back to previous state, except switching off the sst!
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
@@ -387,7 +377,6 @@ void SSTSwIdEntry(void)
 void SSTSwIdExit(void)
 {
     // assuming sst chip is enabled
-    pcbhal_sst_write_enable();
 
     // prepare shift regs
     pcbhal_595_clear();
@@ -405,7 +394,6 @@ void SSTSwIdExit(void)
 
     // get back to previous state
     pcbhal_sst_chip_disable(); // switch off sst
-    pcbhal_sst_write_disable();
     pcbhal_595a_outs_disable();
     pcbhal_595d_outs_disable();
     pcbhal_4245_outs_disable();
