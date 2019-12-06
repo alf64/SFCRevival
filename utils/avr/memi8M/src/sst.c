@@ -7,6 +7,7 @@
 
 #include "pcbhal.h"
 #include "sst.h"
+#include "memidbg.h"
 
 
 void SSTRet(void)

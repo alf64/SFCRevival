@@ -170,6 +170,11 @@
  * Controls write operations.
  */
 #define WE_5V PC1
+
+/*
+ * Debug button.
+ */
+#define DBG_BTN PC0
 // -------------------------------------------
 
 // ----- time constants -----
@@ -192,5 +197,14 @@
  */
 #define SI_SER_SETUPTIME_US 1.0f
 // --------------------------
+
+// ----- some other constants -----
+//!< Logical '0' means the button is pressed.
+#define DBG_BTN_PRESSED 0
+
+//!< Logical '1' means the button is released.
+#define DBG_BTN_RELEASED 1
+
+// --------------------------------
 
 #endif /* INCLUDE_BOARDS_MEMI8M_PCB_H_ */

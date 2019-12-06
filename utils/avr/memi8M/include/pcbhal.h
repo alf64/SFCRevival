@@ -318,6 +318,30 @@ static inline uint8_t pcbhal_so_qh_get()
 }
 
 /*
+ * @brief Sets DBG_BTN to '1'.
+ */
+static inline void pcbhal_dbg_btn_set()
+{
+    UC_PORT2 |= (1<<DBG_BTN);
+}
+
+/*
+ * @brief Clears DBG_BTN to '0'.
+ */
+static inline void pcbhal_dbg_btn_clear()
+{
+    UC_PORT2 &= ~(1<<DBG_BTN);
+}
+
+/*
+ * @brief Returns the logical value of DBG_BTN ('0' or '1').
+ */
+static inline uint8_t pcbhal_dbg_btn_get()
+{
+    return ((UC_PIN2>>DBG_BTN)&0x01);
+}
+
+/*
  * @brief Sets data direction of 4245 to A -> B and enables its outputs.
  */
 void pcbhal_4245_set_ab_outs_enable();

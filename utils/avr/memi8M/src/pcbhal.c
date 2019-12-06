@@ -20,6 +20,10 @@ void pcbhal_init()
             (1<<DATA_OE)|(1<<WE_5V));
     // set pins as inputs
     UC_DDR2 &= ~(1<<SO_QH);
+    UC_DDR2 &= ~(1<<DBG_BTN);
+
+    // dbg btn pull up to VCC
+    pcbhal_dbg_btn_set();
 }
 
 void pcbhal_4245_set_ab_outs_enable()
