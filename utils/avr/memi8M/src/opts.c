@@ -248,7 +248,7 @@ opts_status_t OptsWriteBytes(
             return OPTS_CRITICAL_ERR;
         }
 
-        SSTWrite(addr, writebt);
+        SSTWrite(addr+i, writebt);
 
         usrmsg_status =
                 UsrMsgDispProgress(
