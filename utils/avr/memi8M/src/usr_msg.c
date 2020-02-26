@@ -69,13 +69,13 @@ const char usr_msg_addr_prompt[26] PROGMEM = {
         "Provide starting address "
 };
 const char usr_msg_addr_fmt_advice[71] PROGMEM = {
-        "(use 8-char hex ascii from range 00000000 - 000FFFFF, i.e. 0000ABCD): "
+        "(use 8-char hex ascii from range 00000000 - 001FFFFF, i.e. 0000ABCD): "
 };
 const char usr_msg_no_bytes_prompt[25] PROGMEM = {
         "Provide number of bytes "
 };
 const char usr_msg_no_bytes_fmt_advice[71] PROGMEM = {
-        "(use 8-char hex ascii from range 00000001 - 00100000, i.e. 0000ABCD): "
+        "(use 8-char hex ascii from range 00000001 - 00200000, i.e. 0000ABCD): "
 };
 const char usr_msg_given_addr_is[19] PROGMEM = {
         "Given address is: "
@@ -128,6 +128,12 @@ const char usr_msg_read_data_info[15] PROGMEM = {
 const char usr_msg_write_data_atten[83] PROGMEM = {
         "Attention! For write to take effect, make sure you have erased flash memory first."
 };
+const char usr_msg_memcap_prompt[59] PROGMEM = {
+        "Choose memory capacity to operate on ('1'=16Mb, '0'=8Mb):"
+};
+const char usr_msg_memcap_invalid_err[38] PROGMEM = {
+        "Error, given memory capacity invalid."
+};
 // --------------------------------------------
 
 //!< ----- Infos for read & write all -----
@@ -139,11 +145,13 @@ const char usr_msg_readall_info[215] PROGMEM = {
         "*There won't be any messages send besides the data.\n"
         "*Program will halt forever upon reading all the data."
 };
-const char usr_msg_writeall_info[240] PROGMEM = {
+const char usr_msg_writeall_info[344] PROGMEM = {
         "Attempting to write the whole memory...\n"
         "Attention!\n"
         "Upon proceeding:\n"
         "*Program expects user to provide all the data as raw bytes.\n"
+        "*About 2 ms of delay needs to be applied between each byte,\n"
+        "because uC needs time to flash it on memory.\n"
         "*Confirmation message will be send upon writing all the data.\n"
         "*Program will continue upon writing all the data."
 };
@@ -160,13 +168,13 @@ const char usr_msg_sector_addr_prompt[24] PROGMEM = {
         "Provide sector address "
 };
 const char usr_msg_sector_addr_fmt_advice[71] PROGMEM = {
-        "(use 8-char hex ascii from range 00000000 - 000000FF, i.e. 000000AB): "
+        "(use 8-char hex ascii from range 00000000 - 000001FF, i.e. 000000AB): "
 };
 const char usr_msg_block_addr_prompt[23] PROGMEM = {
         "Provide block address "
 };
 const char usr_msg_block_addr_fmt_advice[71] PROGMEM = {
-        "(use 8-char hex ascii from range 00000000 - 0000000F, i.e. 0000000A): "
+        "(use 8-char hex ascii from range 00000000 - 0000001F, i.e. 0000000A): "
 };
 const char usr_msg_sector_addr_out_of_range_err[42] PROGMEM = {
         "Error, given sector address out of range."
@@ -406,6 +414,37 @@ usr_msg_status_t UsrMsgAskForDataFmt(
     else
     {
         *fmt = usr_input_buff[0];
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForMemoryCapacity(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        usr_memcap_t* memcap)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 1) || (memcap == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_memcap_prompt,
+            (sizeof(usr_msg_memcap_prompt)-1),
+            1);
+    CommCleanMsgBuffer();
+    while(CommGetMsg(1, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
+
+    if((usr_input_buff[0] != USR_MEMCAP_8Mb) && (usr_input_buff[0] != USR_MEMCAP_16Mb))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_memcap_invalid_err,
+                (sizeof(usr_msg_memcap_invalid_err)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else
+    {
+        *memcap = usr_input_buff[0];
         return USR_MSG_SUCCESS;
     }
 }

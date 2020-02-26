@@ -13,7 +13,7 @@
  *
  */
 #include <avr/pgmspace.h>
-#include "boards/memi8M_pcb.h"
+#include "boards/memi8M-01_pcb.h"
 
 //!< main menu messages
 #define USR_MSG_MAIN_WELCOME 0
@@ -81,10 +81,12 @@ extern const char usr_msg_data_ascii_prompt[43] PROGMEM;
 extern const char usr_msg_data_raw_prompt[26] PROGMEM;
 extern const char usr_msg_read_data_info[15] PROGMEM;
 extern const char usr_msg_write_data_atten[83] PROGMEM;
+extern const char usr_msg_memcap_prompt[59] PROGMEM;
+extern const char usr_msg_memcap_invalid_err[38] PROGMEM;
 
 //!< ----- Infos for read & write all -----
 extern const char usr_msg_readall_info[215] PROGMEM;
-extern const char usr_msg_writeall_info[240] PROGMEM;
+extern const char usr_msg_writeall_info[344] PROGMEM;
 extern const char usr_msg_memsize_is[31] PROGMEM;
 extern const char usr_msg_all_data_prompt[31] PROGMEM;
 
@@ -112,6 +114,13 @@ typedef enum
     USR_DATA_FMT_BYTES = '0',
     USR_DATA_FMT_ASCII = '1'
 }usr_data_fmt;
+
+//!< Memory capacity to operate on
+typedef enum
+{
+    USR_MEMCAP_8Mb = '0',
+    USR_MEMCAP_16Mb = '1'
+}usr_memcap_t;
 
 typedef enum
 {
@@ -223,7 +232,7 @@ usr_msg_status_t UsrMsgAskForNoOfBts(
  * given via comm.
  * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
  * This parameter cannot be less than 1.
- * @param bts A pointer where the result (obtained data format) shall be placed.
+ * @param fmt A pointer where the result (obtained data format) shall be placed.
  *
  * @returns usr_msg_status_t
  * @retval USR_MSG_SUCCESS Means the function succeeded to obtain data format.
@@ -234,6 +243,31 @@ usr_msg_status_t UsrMsgAskForDataFmt(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         usr_data_fmt* fmt);
+
+/*
+ * @brief Interactively (using comm) asks user for memory capacity.
+ * @details This is crucial when pcb supports different memory capacities
+ * (i.e. pcb can flash 8Mb or 16Mb).
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 1.
+ * @param memcap A pointer where the result (obtained memory capacity) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain data format.
+ * @retval USR_MSG_FAILED Means the critical error occurred.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (data format is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForMemoryCapacity(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        usr_memcap_t* memcap);
 
 /*
  * @brief Interactively (using comm) asks user if he wants to proceed further or no.

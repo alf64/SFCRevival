@@ -13,7 +13,7 @@
 #include "Comm/comm.h"
 #include "usr_msg.h"
 #include "opts.h"
-#include "boards/memi8M_pcb.h"
+#include "boards/memi8M-01_pcb.h"
 #include "sst.h"
 
 
@@ -283,9 +283,38 @@ opts_status_t OptsReadAll(
     if((inp_buff_size < 1) || (out_buff_size < 9))
         return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
 
+    usr_memcap_t memcap = USR_MEMCAP_8Mb;
     usr_msg_status_t usrmsg_status =
+            UsrMsgAskForMemoryCapacity(
+                    inp_buff,
+                    inp_buff_size,
+                    &memcap);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    uint32_t mem_size = 0;
+    if(memcap == USR_MEMCAP_16Mb)
+    {
+        mem_size = 0x200000;
+    }
+    else
+    {
+        mem_size = 0x100000;
+    }
+    if(mem_size > BOARD_SPACE_CAPACITY)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+
+    usrmsg_status =
             UsrMsgDispReadAllInfo(
-                    BOARD_SPACE_CAPACITY,
+                    mem_size,
                     out_buff,
                     out_buff_size);
     if(usrmsg_status != USR_MSG_SUCCESS)
@@ -340,9 +369,38 @@ opts_status_t OptsWriteAll(
     if((inp_buff_size < 1) || (out_buff_size < 9))
         return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
 
+    usr_memcap_t memcap = USR_MEMCAP_8Mb;
     usr_msg_status_t usrmsg_status =
+            UsrMsgAskForMemoryCapacity(
+                    inp_buff,
+                    inp_buff_size,
+                    &memcap);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    uint32_t mem_size = 0;
+    if(memcap == USR_MEMCAP_16Mb)
+    {
+        mem_size = 0x200000;
+    }
+    else
+    {
+        mem_size = 0x100000;
+    }
+    if(mem_size > BOARD_SPACE_CAPACITY)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+
+    usrmsg_status =
             UsrMsgDispWriteAllInfo(
-                    BOARD_SPACE_CAPACITY,
+                    mem_size,
                     out_buff,
                     out_buff_size);
     if(usrmsg_status != USR_MSG_SUCCESS)

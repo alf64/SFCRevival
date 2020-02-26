@@ -86,7 +86,7 @@ comm_status_t CommSendMsg(
 
 comm_status_t CommSendMsgFromFlash(
         const char* PROGMEM msg,
-        uint8_t msg_size,
+        uint16_t msg_size,
         uint8_t nl)
 {
     comm_status_t status = COMM_SUCCESS;
@@ -94,7 +94,7 @@ comm_status_t CommSendMsgFromFlash(
     if((msg == NULL) || (msg_size == 0))
         return COMM_FAILED;
 
-    for(uint8_t i = 0; i < msg_size; i++)
+    for(uint16_t i = 0; i < msg_size; i++)
     {
         UsartTransmit((uint8_t)pgm_read_byte(&msg[i]));
     }

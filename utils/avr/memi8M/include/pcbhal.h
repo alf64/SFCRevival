@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
-#include "boards/memi8M_pcb.h"
+#include "boards/memi8M-01_pcb.h"
 
 /*
  * HAL functions here for pcb controls.

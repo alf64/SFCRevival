@@ -85,7 +85,7 @@ comm_status_t CommSendMsg(
  */
 comm_status_t CommSendMsgFromFlash(
         const char* PROGMEM msg,
-        uint8_t msg_size,
+        uint16_t msg_size,
         uint8_t nl);
 
 /*
