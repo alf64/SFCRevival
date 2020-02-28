@@ -15,17 +15,19 @@
 const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM = {
         {"\nWelcome to memi8M!"},
         {"Please choose an option:"},
-        {"1. Read bytes."},
-        {"2. Write bytes."},
-        {"3. Read all memory."},
-        {"4. Write all memory."},
-        {"5. Erase sector."},
-        {"6. Erase block."},
-        {"7. Erase all memory."},
-        {"8. Check Product ID."},
-        {"9. Debug scenario 1."},
-        {"A. Debug scenario 2."},
-        {"Select [1 - A] (ascii format): "}
+        {"1. Read bytes (interactive)."},
+        {"2. Write bytes (interactive)."},
+        {"3. Read bytes."},
+        {"4. Write bytes."},
+        {"5. Read all memory."},
+        {"6. Write all memory."},
+        {"7. Erase sectors."},
+        {"8. Erase blocks."},
+        {"9. Erase all memory."},
+        {"a. Check Product ID."},
+        {"b. Debug scenario 1."},
+        {"c. Debug scenario 2."},
+        {"Select [1 - c] (ascii format): "}
 };
 
 const char usr_msg_unsupported_sel[23] PROGMEM = {
@@ -81,7 +83,7 @@ const char usr_msg_given_addr_is[19] PROGMEM = {
         "Given address is: "
 };
 const char usr_msg_given_no_bytes_is[24] PROGMEM = {
-        "Given number of bytes: "
+        "Given number of elems: "
 };
 const char usr_msg_addr_out_of_range_err[35] PROGMEM = {
         "Error, given address out of range."
@@ -138,7 +140,7 @@ const char usr_msg_memcap_invalid_err[38] PROGMEM = {
 
 //!< ----- Infos for read & write all -----
 const char usr_msg_readall_info[215] PROGMEM = {
-        "Attempting to read the whole memory...\n"
+        "Attempting to read the memory block...\n"
         "Attention!\n"
         "Upon proceeding:\n"
         "*Read data will be provided as raw bytes.\n"
@@ -146,7 +148,7 @@ const char usr_msg_readall_info[215] PROGMEM = {
         "*Program will halt forever upon reading all the data."
 };
 const char usr_msg_writeall_info[344] PROGMEM = {
-        "Attempting to write the whole memory...\n"
+        "Attempting to write the memory block...\n"
         "Attention!\n"
         "Upon proceeding:\n"
         "*Program expects user to provide all the data as raw bytes.\n"
@@ -184,6 +186,30 @@ const char usr_msg_block_addr_out_of_range_err[41] PROGMEM = {
 };
 const char usr_msg_eraseall_info[35] PROGMEM = {
         "Attempting to erase chip memory..."
+};
+const char usr_msg_sectors_cnt_prompt[27] PROGMEM = {
+        "Provide number of sectors "
+};
+const char usr_msg_sectors_cnt_fmt_advice[71] PROGMEM = {
+        "(use 8-char hex ascii from range 00000001 - 00000200, i.e. 000000AB): "
+};
+const char usr_msg_sectors_cnt_out_of_range_err[45] PROGMEM = {
+        "Error, given number of sectors out of range."
+};
+const char usr_msg_addr_vs_sectors_cnt_err[52] PROGMEM = {
+        "Error, given addr + number of sectors out of range."
+};
+const char usr_msg_blocks_cnt_prompt[26] PROGMEM = {
+        "Provide number of blocks "
+};
+const char usr_msg_blocks_cnt_fmt_advice[71] PROGMEM = {
+        "(use 8-char hex ascii from range 00000001 - 00000020, i.e. 0000001A): "
+};
+const char usr_msg_blocks_cnt_out_of_range_err[44] PROGMEM = {
+        "Error, given number of blocks out of range."
+};
+const char usr_msg_addr_vs_blocks_cnt_err[51] PROGMEM = {
+        "Error, given addr + number of blocks out of range."
 };
 // --------------------------------------------
 
@@ -301,6 +327,49 @@ usr_msg_status_t UsrMsgAskForSectorAddr(
     }
 }
 
+usr_msg_status_t UsrMsgAskForSectorCount(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* sector_cnt)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 8) || (sector_cnt == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_sectors_cnt_prompt,
+            (sizeof(usr_msg_sectors_cnt_prompt)-1),
+            1);
+    CommSendMsgFromFlash(
+            usr_msg_sectors_cnt_fmt_advice,
+            (sizeof(usr_msg_sectors_cnt_fmt_advice)-1),
+            1);
+    CommCleanMsgBuffer();
+    while(CommGetMsg(8, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
+
+    ascii_status_t ascii_status = HexAsciiToU32(usr_input_buff, sector_cnt);
+    if(ascii_status == ASCII_INVALID_RANGE)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_invalid_input_not_hex,
+                (sizeof(usr_msg_invalid_input_not_hex)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if(ascii_status == ASCII_FAILED)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                (sizeof(usr_msg_critical_err)-1),
+                1);
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
 usr_msg_status_t UsrMsgAskForBlockAddr(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
@@ -322,6 +391,49 @@ usr_msg_status_t UsrMsgAskForBlockAddr(
     CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
 
     ascii_status_t ascii_status = HexAsciiToU32(usr_input_buff, block_addr);
+    if(ascii_status == ASCII_INVALID_RANGE)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_invalid_input_not_hex,
+                (sizeof(usr_msg_invalid_input_not_hex)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if(ascii_status == ASCII_FAILED)
+    {
+        CommSendMsgFromFlash(
+                usr_msg_critical_err,
+                (sizeof(usr_msg_critical_err)-1),
+                1);
+        return USR_MSG_FAILED;
+    }
+    else
+    {
+        return USR_MSG_SUCCESS;
+    }
+}
+
+usr_msg_status_t UsrMsgAskForBlockCount(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* block_cnt)
+{
+    if((usr_input_buff == NULL) || (usr_input_buff_size < 8) || (block_cnt == NULL))
+        return USR_MSG_FAILED;
+
+    CommSendMsgFromFlash(
+            usr_msg_blocks_cnt_prompt,
+            (sizeof(usr_msg_blocks_cnt_prompt)-1),
+            1);
+    CommSendMsgFromFlash(
+            usr_msg_blocks_cnt_fmt_advice,
+            (sizeof(usr_msg_blocks_cnt_fmt_advice)-1),
+            1);
+    CommCleanMsgBuffer();
+    while(CommGetMsg(8, usr_input_buff, usr_input_buff_size) != COMM_SUCCESS);
+    CommSendMsgFromFlash(usr_msg_input_received, (sizeof(usr_msg_input_received)-1), 1);
+
+    ascii_status_t ascii_status = HexAsciiToU32(usr_input_buff, block_cnt);
     if(ascii_status == ASCII_INVALID_RANGE)
     {
         CommSendMsgFromFlash(
@@ -867,7 +979,9 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
     }
 }
 
-usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr)
+usr_msg_status_t UsrMsgSectorAddrCntCheck(
+        uint32_t sector_addr,
+        uint32_t sector_cnt)
 {
     if((sector_addr > BOARD_MAX_SECTOR_ADDRESS) || (sector_addr < BOARD_MIN_SECTOR_ADDRESS))
     {
@@ -877,19 +991,53 @@ usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr)
                 1);
         return USR_MSG_INVALID_INPUT;
     }
+    else if((sector_cnt > BOARD_SECTOR_COUNT) || (sector_cnt == 0))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_sectors_cnt_out_of_range_err,
+                (sizeof(usr_msg_sectors_cnt_out_of_range_err)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if( ((sector_addr + sector_cnt) >  BOARD_SECTOR_COUNT) )
+    {
+        CommSendMsgFromFlash(
+                usr_msg_addr_vs_sectors_cnt_err,
+                (sizeof(usr_msg_addr_vs_sectors_cnt_err)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
     else
     {
         return USR_MSG_SUCCESS;
     }
 }
 
-usr_msg_status_t UsrMsgBlockAddrCheck(uint32_t block_addr)
+usr_msg_status_t UsrMsgBlockAddrCntCheck(
+        uint32_t block_addr,
+        uint32_t block_cnt)
 {
     if((block_addr > BOARD_MAX_BLOCK_ADDRESS) || (block_addr < BOARD_MIN_BLOCK_ADDRESS))
     {
         CommSendMsgFromFlash(
                 usr_msg_block_addr_out_of_range_err,
                 (sizeof(usr_msg_block_addr_out_of_range_err)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if((block_cnt > BOARD_BLOCK_COUNT) || (block_cnt == 0))
+    {
+        CommSendMsgFromFlash(
+                usr_msg_blocks_cnt_out_of_range_err,
+                (sizeof(usr_msg_blocks_cnt_out_of_range_err)-1),
+                1);
+        return USR_MSG_INVALID_INPUT;
+    }
+    else if( ((block_addr + block_cnt) >  BOARD_BLOCK_COUNT) )
+    {
+        CommSendMsgFromFlash(
+                usr_msg_addr_vs_blocks_cnt_err,
+                (sizeof(usr_msg_addr_vs_blocks_cnt_err)-1),
                 1);
         return USR_MSG_INVALID_INPUT;
     }

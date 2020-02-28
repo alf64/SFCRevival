@@ -59,13 +59,13 @@ int main(void)
 
         switch(usr_input[0])
         {
-            case USR_MSG_READ_BYTES_CHOICE:
+            case USR_MSG_READ_BYTES_INTERACTIVE_CHOICE:
             {
                 uint8_t retry = 0;
                 do
                 {
                     opts_status_t opts_status =
-                            OptsReadBytes(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                            OptsReadBytesInteractive(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
                     if(opts_status == OPTS_CRITICAL_ERR)
                     {
                         while(1){}; // halt forever
@@ -86,6 +86,70 @@ int main(void)
                         {
                             // retry obtained, do nothing, rely on its current value
                         }
+                    }
+                } while(retry);
+
+                break;
+            }
+            case USR_MSG_WRITE_BYTES_INTERACTIVE_CHOICE:
+            {
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsWriteBytesInteractive(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_CRITICAL_ERR)
+                    {
+                        while(1){}; // halt forever
+                    }
+                    else // opts_status == OPTS_SUCCESS || opts_status == OPTS_NEED_RETRY
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                } while(retry);
+
+                break;
+            }
+            case USR_MSG_READ_BYTES_CHOICE:
+            {
+                uint8_t retry = 0;
+                do
+                {
+                    opts_status_t opts_status =
+                            OptsReadBytes(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                    if(opts_status == OPTS_NEED_RETRY)
+                    {
+                        usr_msg_status_t usrmsg_status =
+                                UsrMsgAskForRetry(usr_input, sizeof(usr_input), &retry);
+                        if(usrmsg_status == USR_MSG_FAILED)
+                        {
+                            while(1){}; // critical, halt forever
+                        }
+                        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+                        {
+                            retry = 0; // retry not obtained, assume no retry
+                        }
+                        else // USR_MSG_SUCCESS
+                        {
+                            // retry obtained, do nothing, rely on its current value
+                        }
+                    }
+                    else //((opts_status == OPTS_CRITICAL_ERR) || (opts_status == OPTS_SUCCESS))
+                    {
+                        while(1){}; // SUCCESS or ERROR, halt forever
                     }
                 } while(retry);
 
@@ -187,13 +251,13 @@ int main(void)
 
                 break;
             }
-            case USR_MSG_ERASE_SECTOR_CHOICE:
+            case USR_MSG_ERASE_SECTORS_CHOICE:
             {
                 uint8_t retry = 0;
                 do
                 {
                     opts_status_t opts_status =
-                            OptsEraseSector(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                            OptsEraseSectors(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
                     if(opts_status == OPTS_CRITICAL_ERR)
                     {
                         while(1){}; // halt forever
@@ -219,13 +283,13 @@ int main(void)
 
                 break;
             }
-            case USR_MSG_ERASE_BLOCK_CHOICE:
+            case USR_MSG_ERASE_BLOCKS_CHOICE:
             {
                 uint8_t retry = 0;
                 do
                 {
                     opts_status_t opts_status =
-                            OptsEraseBlock(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
+                            OptsEraseBlocks(usr_input, sizeof(usr_input), sys_output, sizeof(sys_output));
                     if(opts_status == OPTS_CRITICAL_ERR)
                     {
                         while(1){}; // halt forever

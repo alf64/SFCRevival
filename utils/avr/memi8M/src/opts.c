@@ -19,6 +19,8 @@
 
 /*
  * @brief Gets addr, bts, fmt from usr via comm.
+ * @details
+ * If NULL is passed as either addr, bts or fmt, such data resource is omitted.
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
  * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
@@ -47,69 +49,91 @@ opts_status_t GetAddrBtsFmt(
         return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
 
     // ----- get addr from usr -----
-    usr_msg_status_t usrmsg_status =
-            UsrMsgAskForAddr(inp_buff, inp_buff_size, addr);
-    if(usrmsg_status == USR_MSG_FAILED)
+    usr_msg_status_t usrmsg_status = USR_MSG_SUCCESS;
+    if(addr != NULL)
     {
-        return OPTS_CRITICAL_ERR;
-    }
-    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-    {
-        return OPTS_NEED_RETRY;
+        usrmsg_status =
+                UsrMsgAskForAddr(inp_buff, inp_buff_size, addr);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
+        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        {
+            return OPTS_NEED_RETRY;
+        }
     }
 
     // ----- get no of bytes from usr -----
-    usrmsg_status =
-            UsrMsgAskForNoOfBts(inp_buff, inp_buff_size, bts);
-    if(usrmsg_status == USR_MSG_FAILED)
+    if(bts != NULL)
     {
-        return OPTS_CRITICAL_ERR;
-    }
-    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-    {
-        return OPTS_NEED_RETRY;
+        usrmsg_status =
+                UsrMsgAskForNoOfBts(inp_buff, inp_buff_size, bts);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
+        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        {
+            return OPTS_NEED_RETRY;
+        }
     }
 
     // ----- get data format from usr -----
-    usrmsg_status =
-            UsrMsgAskForDataFmt(inp_buff, inp_buff_size, fmt);
-    if(usrmsg_status == USR_MSG_FAILED)
+    if(fmt != NULL)
     {
-        return OPTS_CRITICAL_ERR;
-    }
-    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
-    {
-        return OPTS_NEED_RETRY;
+        usrmsg_status =
+                UsrMsgAskForDataFmt(inp_buff, inp_buff_size, fmt);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
+        else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        {
+            return OPTS_NEED_RETRY;
+        }
     }
 
     // ----- convert addr to ascii and display it to usr -----
-    usrmsg_status =
-            UsrMsgDispAddrAsAscii(*addr, out_buff, out_buff_size);
-    if(usrmsg_status == USR_MSG_FAILED)
+    if(addr != NULL)
     {
-        return OPTS_CRITICAL_ERR;
+        usrmsg_status =
+                UsrMsgDispAddrAsAscii(*addr, out_buff, out_buff_size);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
     }
 
     // ----- convert bts to ascii and display it to usr -----
-    usrmsg_status =
-            UsrMsgDispNoOfBtsAsAscii(*bts, out_buff, out_buff_size);
-    if(usrmsg_status == USR_MSG_FAILED)
+    if(bts != NULL)
     {
-        return OPTS_CRITICAL_ERR;
+        usrmsg_status =
+                UsrMsgDispNoOfBtsAsAscii(*bts, out_buff, out_buff_size);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
     }
 
     // ----- display data format to usr -----
-    usrmsg_status = UsrMsgDispDataFmtAsAscii(*fmt);
-    if(usrmsg_status == USR_MSG_FAILED)
+    if(fmt != NULL)
     {
-        return OPTS_CRITICAL_ERR;
+        usrmsg_status = UsrMsgDispDataFmtAsAscii(*fmt);
+        if(usrmsg_status == USR_MSG_FAILED)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
     }
 
     // ----- check the sanity of the addr and bytes and addr vs bytes -----
-    usrmsg_status = UsrMsgAddrBtsCheck(*addr, *bts);
-    if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    if((addr != NULL) && (bts != NULL))
     {
-        return OPTS_NEED_RETRY;
+        usrmsg_status = UsrMsgAddrBtsCheck(*addr, *bts);
+        if(usrmsg_status == USR_MSG_INVALID_INPUT)
+        {
+            return OPTS_NEED_RETRY;
+        }
     }
 
     // ----- ask usr if he is sure to proceed with its choices -----
@@ -133,7 +157,7 @@ opts_status_t GetAddrBtsFmt(
     return OPTS_SUCCESS;
 }
 
-opts_status_t OptsReadBytes(
+opts_status_t OptsReadBytesInteractive(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
@@ -147,7 +171,7 @@ opts_status_t OptsReadBytes(
 
     uint32_t addr = 0;
     uint32_t bts = 0;
-    usr_data_fmt fmt = USR_DATA_FMT_ASCII;;
+    usr_data_fmt fmt = USR_DATA_FMT_ASCII;
 
     opts_status_t opts_status =
             GetAddrBtsFmt(inp_buff,
@@ -197,7 +221,7 @@ opts_status_t OptsReadBytes(
     return OPTS_SUCCESS;
 }
 
-opts_status_t OptsWriteBytes(
+opts_status_t OptsWriteBytesInteractive(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
@@ -211,7 +235,7 @@ opts_status_t OptsWriteBytes(
 
     uint32_t addr = 0;
     uint32_t bts = 0;
-    usr_data_fmt fmt = USR_DATA_FMT_ASCII;;
+    usr_data_fmt fmt = USR_DATA_FMT_ASCII;
 
     opts_status_t opts_status =
             GetAddrBtsFmt(inp_buff,
@@ -248,7 +272,7 @@ opts_status_t OptsWriteBytes(
             return OPTS_CRITICAL_ERR;
         }
 
-        SSTWrite(addr+i, writebt);
+        SSTWrite((addr+i), writebt);
 
         usrmsg_status =
                 UsrMsgDispProgress(
@@ -261,6 +285,155 @@ opts_status_t OptsWriteBytes(
             return OPTS_CRITICAL_ERR;
         }
 
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_job_done,
+            (sizeof(usr_msg_job_done)-1),
+            1);
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsReadBytes(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 8) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    uint32_t addr = 0;
+    uint32_t bts = 0;
+
+    opts_status_t opts_status =
+            GetAddrBtsFmt(inp_buff,
+                    inp_buff_size,
+                    out_buff,
+                    out_buff_size,
+                    &addr,
+                    &bts,
+                    NULL);
+    if(opts_status != OPTS_SUCCESS)
+        return opts_status;
+
+    usr_msg_status_t usrmsg_status =
+            UsrMsgDispReadAllInfo(
+                    bts,
+                    out_buff,
+                    out_buff_size);
+    if(usrmsg_status != USR_MSG_SUCCESS)
+        return OPTS_CRITICAL_ERR;
+
+    // ----- ask usr if he is sure to proceed -----
+    uint8_t proceed = 0;
+    usrmsg_status =
+            UsrMsgAskForProceed(inp_buff, inp_buff_size, &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    uint8_t readbt = 0;
+    for(uint32_t i = 0; i < bts; i++)
+    {
+        sst_ec_t sst_status = SSTRead((addr+i), &readbt);
+        if(sst_status != SST_SUCCESS)
+        {
+            CommSendMsgFromFlash(
+                    usr_msg_critical_err,
+                    (sizeof(usr_msg_critical_err)-1),
+                    1);
+            return OPTS_CRITICAL_ERR;
+        }
+
+        CommSendBytes(&readbt, 1);
+    }
+
+    return OPTS_SUCCESS;
+}
+
+opts_status_t OptsWriteBytes(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size)
+{
+    if((inp_buff == NULL) || (out_buff) == NULL)
+        return OPTS_CRITICAL_ERR;
+
+    if((inp_buff_size < 1) || (out_buff_size < 9))
+        return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
+
+    uint32_t addr = 0;
+    uint32_t bts = 0;
+
+    opts_status_t opts_status =
+            GetAddrBtsFmt(inp_buff,
+                    inp_buff_size,
+                    out_buff,
+                    out_buff_size,
+                    &addr,
+                    &bts,
+                    NULL);
+    if(opts_status != OPTS_SUCCESS)
+        return opts_status;
+
+    CommSendMsgFromFlash(
+            usr_msg_write_data_atten,
+            (sizeof(usr_msg_write_data_atten)-1),
+            1);
+
+    usr_msg_status_t usrmsg_status =
+            UsrMsgDispWriteAllInfo(
+                    bts,
+                    out_buff,
+                    out_buff_size);
+    if(usrmsg_status != USR_MSG_SUCCESS)
+        return OPTS_CRITICAL_ERR;
+
+    // ----- ask usr if he is sure to proceed -----
+    uint8_t proceed = 0;
+    usrmsg_status =
+            UsrMsgAskForProceed(inp_buff, inp_buff_size, &proceed);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    if(!proceed)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    CommSendMsgFromFlash(
+            usr_msg_all_data_prompt,
+            (sizeof(usr_msg_all_data_prompt)-1),
+            1);
+    CommCleanMsgBuffer();
+
+    uint8_t writebt = 0;
+    for(uint32_t i = 0; i < bts; i++)
+    {
+        while(CommGetMsg(sizeof(writebt), &writebt, sizeof(writebt)) != COMM_SUCCESS);
+        SSTWrite((addr+i), writebt);
     }
 
     CommSendMsgFromFlash(
@@ -445,7 +618,7 @@ opts_status_t OptsWriteAll(
     return OPTS_SUCCESS;
 }
 
-opts_status_t OptsEraseSector(
+opts_status_t OptsEraseSectors(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
@@ -458,6 +631,7 @@ opts_status_t OptsEraseSector(
         return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
 
     uint32_t sector_addr = 0;
+    uint32_t sector_cnt = 0;
     usr_msg_status_t usrmsg_status =
             UsrMsgAskForSectorAddr(
                     inp_buff,
@@ -472,7 +646,24 @@ opts_status_t OptsEraseSector(
         return OPTS_NEED_RETRY;
     }
 
-    usrmsg_status = UsrMsgSectorAddrCheck(sector_addr);
+    usrmsg_status =
+            UsrMsgAskForSectorCount(
+                    inp_buff,
+                    inp_buff_size,
+                    &sector_cnt);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status =
+            UsrMsgSectorAddrCntCheck(
+                    sector_addr,
+                    sector_cnt);
     if(usrmsg_status == USR_MSG_INVALID_INPUT)
     {
         return OPTS_NEED_RETRY;
@@ -480,6 +671,13 @@ opts_status_t OptsEraseSector(
 
     usrmsg_status = UsrMsgDispAddrAsAscii(
             sector_addr,
+            out_buff,
+            out_buff_size);
+    if(usrmsg_status == USR_MSG_FAILED)
+        return OPTS_CRITICAL_ERR;
+
+    usrmsg_status = UsrMsgDispNoOfBtsAsAscii(
+            sector_cnt,
             out_buff,
             out_buff_size);
     if(usrmsg_status == USR_MSG_FAILED)
@@ -502,10 +700,13 @@ opts_status_t OptsEraseSector(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    sst_ec_t sst_status = SSTEraseSector(sector_addr);
-    if(sst_status != SST_SUCCESS)
+    for(uint32_t i = 0; i < sector_cnt; i++)
     {
-        return OPTS_CRITICAL_ERR;
+        sst_ec_t sst_status = SSTEraseSector((sector_addr+i));
+        if(sst_status != SST_SUCCESS)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
     }
 
     CommSendMsgFromFlash(
@@ -516,7 +717,7 @@ opts_status_t OptsEraseSector(
     return OPTS_SUCCESS;
 }
 
-opts_status_t OptsEraseBlock(
+opts_status_t OptsEraseBlocks(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
@@ -529,6 +730,7 @@ opts_status_t OptsEraseBlock(
         return OPTS_CRITICAL_ERR; // functions called below have such requirements for sizes
 
     uint32_t block_addr = 0;
+    uint32_t block_cnt = 0;
     usr_msg_status_t usrmsg_status =
             UsrMsgAskForBlockAddr(
                     inp_buff,
@@ -543,7 +745,23 @@ opts_status_t OptsEraseBlock(
         return OPTS_NEED_RETRY;
     }
 
-    usrmsg_status = UsrMsgBlockAddrCheck(block_addr);
+    usrmsg_status =
+            UsrMsgAskForBlockCount(
+                    inp_buff,
+                    inp_buff_size,
+                    &block_cnt);
+    if(usrmsg_status == USR_MSG_FAILED)
+    {
+        return OPTS_CRITICAL_ERR;
+    }
+    else if(usrmsg_status == USR_MSG_INVALID_INPUT)
+    {
+        return OPTS_NEED_RETRY;
+    }
+
+    usrmsg_status = UsrMsgBlockAddrCntCheck(
+            block_addr,
+            block_cnt);
     if(usrmsg_status == USR_MSG_INVALID_INPUT)
     {
         return OPTS_NEED_RETRY;
@@ -551,6 +769,13 @@ opts_status_t OptsEraseBlock(
 
     usrmsg_status = UsrMsgDispAddrAsAscii(
             block_addr,
+            out_buff,
+            out_buff_size);
+    if(usrmsg_status == USR_MSG_FAILED)
+        return OPTS_CRITICAL_ERR;
+
+    usrmsg_status = UsrMsgDispNoOfBtsAsAscii(
+            block_cnt,
             out_buff,
             out_buff_size);
     if(usrmsg_status == USR_MSG_FAILED)
@@ -573,10 +798,13 @@ opts_status_t OptsEraseBlock(
     if(!proceed)
         return OPTS_NEED_RETRY;
 
-    sst_ec_t sst_status = SSTEraseBlock(block_addr);
-    if(sst_status != SST_SUCCESS)
+    for(uint32_t i = 0; i < block_cnt; i++)
     {
-        return OPTS_CRITICAL_ERR;
+        sst_ec_t sst_status = SSTEraseBlock((block_addr + i));
+        if(sst_status != SST_SUCCESS)
+        {
+            return OPTS_CRITICAL_ERR;
+        }
     }
 
     CommSendMsgFromFlash(

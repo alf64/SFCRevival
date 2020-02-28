@@ -17,7 +17,7 @@ typedef enum
 }opts_status_t;
 
 /*
- * @brief Implements read-bytes selection.
+ * @brief Implements read-bytes-interactive selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
@@ -31,14 +31,14 @@ typedef enum
  * @retval OPTS_CRITICAL_ERR Means the function occurred critical error.
  * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
  */
-opts_status_t OptsReadBytes(
+opts_status_t OptsReadBytesInteractive(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
         uint32_t out_buff_size);
 
 /*
- * @brief Implements write-bytes selection.
+ * @brief Implements write-bytes-interactive selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
@@ -50,6 +50,48 @@ opts_status_t OptsReadBytes(
  * @returns opts_status_t
  * @retval OPTS_SUCCESS Means the function successfully ended its execution.
  * @retval OPTS_CRITICAL_ERR Means the function occurred critical error.
+ * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
+ */
+opts_status_t OptsWriteBytesInteractive(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size);
+
+/*
+ * @brief Implements read-bytes selection.
+ *
+ * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
+ * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 1.
+ * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
+ * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
+ *
+ * @returns opts_status_t
+ * @retval OPTS_SUCCESS If succeeded to read the whole memory.
+ * @retval OPTS_CRITICAL_ERR If failed to read the whole memory.
+ * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
+ */
+opts_status_t OptsReadBytes(
+        unsigned char* inp_buff,
+        uint32_t inp_buff_size,
+        unsigned char* out_buff,
+        uint32_t out_buff_size);
+
+/*
+ * @brief Implements write-bytes selection.
+ *
+ * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
+ * @param inp_buff_size A size (in bytes) of the given inp_buff.
+ * This shall be no less than 1.
+ * @param out_buff A pointer to buffer which will be used for giving output to user via comm.
+ * @param out_buff_size A size (in bytes) of the given out_buff.
+ * This shall be no less than 9.
+ *
+ * @returns opts_status_t
+ * @retval OPTS_SUCCESS If succeeded to write the whole memory.
+ * @retval OPTS_CRITICAL_ERR If failed to write the whole memory.
  * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
  */
 opts_status_t OptsWriteBytes(
@@ -101,7 +143,7 @@ opts_status_t OptsWriteAll(
         uint32_t out_buff_size);
 
 /*
- * @biref Implements erase-sector selection.
+ * @biref Implements erase-sectors selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
@@ -115,14 +157,14 @@ opts_status_t OptsWriteAll(
  * @retval OPTS_CRITICAL_ERR If failed to erase sector.
  * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
  */
-opts_status_t OptsEraseSector(
+opts_status_t OptsEraseSectors(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,
         uint32_t out_buff_size);
 
 /*
- * @biref Implements erase-block selection.
+ * @biref Implements erase-blocks selection.
  *
  * @param inp_buff A pointer to buffer which will be used for obtaining user input via comm.
  * @param inp_buff_size A size (in bytes) of the given inp_buff.
@@ -136,7 +178,7 @@ opts_status_t OptsEraseSector(
  * @retval OPTS_CRITICAL_ERR If failed to erase block.
  * @retval OPTS_NEED_RETRY Means there is a need to restart (re-call) this function.
  */
-opts_status_t OptsEraseBlock(
+opts_status_t OptsEraseBlocks(
         unsigned char* inp_buff,
         uint32_t inp_buff_size,
         unsigned char* out_buff,

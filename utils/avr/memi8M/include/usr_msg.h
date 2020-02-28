@@ -27,20 +27,22 @@
 #define USR_MSG_MAIN_MAKE_SELECTION_PROMPT 8
 
 //!< maximums
-#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 13
+#define USR_MSG_MAIN_AVAILABLE_USR_MSGS 15
 #define USR_MSG_MAIN_MAX_CHARS_PER_MSG 32
 
 //!< main menu choices
-#define USR_MSG_READ_BYTES_CHOICE '1'
-#define USR_MSG_WRITE_BYTES_CHOICE '2'
-#define USR_MSG_READ_ALL_CHOICE '3'
-#define USR_MSG_WRITE_ALL_CHOICE '4'
-#define USR_MSG_ERASE_SECTOR_CHOICE '5'
-#define USR_MSG_ERASE_BLOCK_CHOICE '6'
-#define USR_MSG_ERASE_ALL_CHOICE '7'
-#define USR_MSG_CHECK_PROD_ID_CHOICE '8'
-#define USR_MSG_DBG_SC_01_CHOICE '9'
-#define USR_MSG_DBG_SC_02_CHOICE 'A'
+#define USR_MSG_READ_BYTES_INTERACTIVE_CHOICE '1'
+#define USR_MSG_WRITE_BYTES_INTERACTIVE_CHOICE '2'
+#define USR_MSG_READ_BYTES_CHOICE '3'
+#define USR_MSG_WRITE_BYTES_CHOICE '4'
+#define USR_MSG_READ_ALL_CHOICE '5'
+#define USR_MSG_WRITE_ALL_CHOICE '6'
+#define USR_MSG_ERASE_SECTORS_CHOICE '7'
+#define USR_MSG_ERASE_BLOCKS_CHOICE '8'
+#define USR_MSG_ERASE_ALL_CHOICE '9'
+#define USR_MSG_CHECK_PROD_ID_CHOICE 'a'
+#define USR_MSG_DBG_SC_01_CHOICE 'b'
+#define USR_MSG_DBG_SC_02_CHOICE 'c'
 
 extern const char usr_msg_main_menu[USR_MSG_MAIN_AVAILABLE_USR_MSGS][USR_MSG_MAIN_MAX_CHARS_PER_MSG] PROGMEM;
 
@@ -98,6 +100,14 @@ extern const char usr_msg_block_addr_fmt_advice[71] PROGMEM;
 extern const char usr_msg_sector_addr_out_of_range_err[42] PROGMEM;
 extern const char usr_msg_block_addr_out_of_range_err[41] PROGMEM;
 extern const char usr_msg_eraseall_info[35] PROGMEM;
+extern const char usr_msg_sectors_cnt_prompt[27] PROGMEM;
+extern const char usr_msg_sectors_cnt_fmt_advice[71] PROGMEM;
+extern const char usr_msg_sectors_cnt_out_of_range_err[45] PROGMEM;
+extern const char usr_msg_addr_vs_sectors_cnt_err[52] PROGMEM;
+extern const char usr_msg_blocks_cnt_prompt[26] PROGMEM;
+extern const char usr_msg_blocks_cnt_fmt_advice[71] PROGMEM;
+extern const char usr_msg_blocks_cnt_out_of_range_err[44] PROGMEM;
+extern const char usr_msg_addr_vs_blocks_cnt_err[51] PROGMEM;
 extern const char usr_msg_check_prod_id_info[34] PROGMEM;
 extern const char usr_msg_man_id_is[18] PROGMEM;
 extern const char usr_msg_dev_id_is[12] PROGMEM;
@@ -176,6 +186,29 @@ usr_msg_status_t UsrMsgAskForSectorAddr(
         uint32_t* sector_addr);
 
 /*
+ * @brief Interactively (using comm) asks user for sector count (how much sectors).
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param sector_cnt A pointer where the result (obtained sector count) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the sector cnt from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (sector_cnt is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForSectorCount(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* sector_cnt);
+
+/*
  * @brief Interactively (using comm) asks user for the block address.
  *
  * @attention
@@ -197,6 +230,29 @@ usr_msg_status_t UsrMsgAskForBlockAddr(
         unsigned char* usr_input_buff,
         uint8_t usr_input_buff_size,
         uint32_t* block_addr);
+
+/*
+ * @brief Interactively (using comm) asks user for block count (how much blocks).
+ *
+ * @attention
+ * This function relies on comm, so it is necessary to perform CommInit()
+ * before using it.
+ *
+ * @param usr_input_buff A pointer to a buffer meant for storing user input
+ * given via comm.
+ * @param usr_input_buff_size A size (in bytes) of the given usr_input_buff
+ * This parameter cannot be less than 8.
+ * @param block_cnt A pointer where the result (obtained block count) shall be placed.
+ *
+ * @returns usr_msg_status_t
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain the block cnt from user.
+ * @retval USR_MSG_FAILED Means the critical error occured.
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (block_cnt is not obtained).
+ */
+usr_msg_status_t UsrMsgAskForBlockCount(
+        unsigned char* usr_input_buff,
+        uint8_t usr_input_buff_size,
+        uint32_t* block_cnt);
 
 /*
  * @brief Interactively (using comm) asks user for number of bytes.
@@ -260,9 +316,9 @@ usr_msg_status_t UsrMsgAskForDataFmt(
  * @param memcap A pointer where the result (obtained memory capacity) shall be placed.
  *
  * @returns usr_msg_status_t
- * @retval USR_MSG_SUCCESS Means the function succeeded to obtain data format.
+ * @retval USR_MSG_SUCCESS Means the function succeeded to obtain memory capacity.
  * @retval USR_MSG_FAILED Means the critical error occurred.
- * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (data format is not obtained).
+ * @retval USR_MSG_INVALID_INPUT Means the user gave invalid input (memory capacity is not obtained).
  */
 usr_msg_status_t UsrMsgAskForMemoryCapacity(
         unsigned char* usr_input_buff,
@@ -477,34 +533,40 @@ usr_msg_status_t UsrMsgAddrBtsCheck(
         uint32_t bts);
 
 /*
- * @brief Checks the sanity of the sector_addr.
+ * @brief Checks the sanity of the sector_addr and sector_cnt.
  *
- * @details This function takes sector_addr and checks if
+ * @details This function takes sector_addr and sector_cnt and checks if
  * its value is sane. If there is a problem with it, sends appropriate message to
  * user informing him about it.
  *
  * @param sector_addr Sector address to be checked.
+ * @param sector_cnt Sector count to be checked.
  *
  * @returns usr_msg_status_t
- * @retval USR_MSG_SUCCESS Means the given sector_addr is sane.
- * @retval USR_MSG_INVALID_INPUT Means the given sector_addr is not sane.
+ * @retval USR_MSG_SUCCESS Means the given sector_addr and sector_cnt are sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given sector_addr or/and sector_cnt is not sane.
  */
-usr_msg_status_t UsrMsgSectorAddrCheck(uint32_t sector_addr);
+usr_msg_status_t UsrMsgSectorAddrCntCheck(
+        uint32_t sector_addr,
+        uint32_t sector_cnt);
 
 /*
- * @brief Checks the sanity of the block_addr.
+ * @brief Checks the sanity of the block_addr and block_cnt.
  *
- * @details This function takes block_addr and checks if
+ * @details This function takes block_addr and block_cnt and checks if
  * its value is sane. If there is a problem with it, sends appropriate message to
  * user informing him about it.
  *
  * @param block_addr Block address to be checked.
+ * @param block_cnt Sector count to be checked.
  *
  * @returns usr_msg_status_t
- * @retval USR_MSG_SUCCESS Means the given block_addr is sane.
- * @retval USR_MSG_INVALID_INPUT Means the given block_addr is not sane.
+ * @retval USR_MSG_SUCCESS Means the given block_addr and block_cnt is sane.
+ * @retval USR_MSG_INVALID_INPUT Means the given block_addr and block_cnt is not sane.
  */
-usr_msg_status_t UsrMsgBlockAddrCheck(uint32_t block_addr);
+usr_msg_status_t UsrMsgBlockAddrCntCheck(
+        uint32_t block_addr,
+        uint32_t block_cnt);
 
 /*
  * @brief Checks the sanity of the man_id (manufacturer id) and dev_id (device id).
