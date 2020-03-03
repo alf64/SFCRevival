@@ -512,7 +512,7 @@ opts_status_t OptsReadAll(
     }
 
     uint8_t readbt = 0;
-    for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
+    for(uint32_t i = 0; i < mem_size; i++)
     {
         sst_ec_t sst_status = SSTRead(i, &readbt);
         if(sst_status != SST_SUCCESS)
@@ -604,7 +604,7 @@ opts_status_t OptsWriteAll(
     CommCleanMsgBuffer();
 
     uint8_t writebt = 0;
-    for(uint32_t i = 0; i < BOARD_SPACE_CAPACITY; i++)
+    for(uint32_t i = 0; i < mem_size; i++)
     {
         while(CommGetMsg(sizeof(writebt), &writebt, sizeof(writebt)) != COMM_SUCCESS);
         SSTWrite(i, writebt);
